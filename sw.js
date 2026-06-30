@@ -1,10 +1,13 @@
-const CACHE = 'kids-play-v2';
+const CACHE = 'kids-play-v3';
 
 const ASSETS = [
   './index.html',
   './number-guess.html',
   './memory-game.html',
   './country-capital.html',
+  './whack-a-mole.html',
+  './dodge.html',
+  './simon.html',
   './manifest.json',
   './data/countries.js'
 ];

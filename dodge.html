@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>두더지 피하기</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#764ba2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="놀이터" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .back {
+      align-self: flex-start;
+      text-decoration: none;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.25);
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .back:hover { background: rgba(255,255,255,0.4); }
+    h1 { font-size: 2rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.15); margin-bottom: 12px; }
+    canvas {
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      display: block;
+      touch-action: none;
+    }
+    .controls {
+      display: flex;
+      gap: 16px;
+      margin-top: 14px;
+      width: 100%;
+      max-width: 380px;
+    }
+    .ctrl-btn {
+      flex: 1;
+      padding: 16px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .ctrl-btn:active { background: rgba(255,255,255,0.5); }
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      align-items: center; justify-content: center; z-index: 10;
+    }
+    .overlay.show { display: flex; }
+    .box {
+      background: #fff; border-radius: 28px;
+      padding: 40px 48px; text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+      max-width: 320px; width: 90%;
+    }
+    .box .em { font-size: 3.5rem; margin-bottom: 10px; }
+    .box h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .box p { color: #888; margin-bottom: 24px; line-height: 1.6; }
+    .box button {
+      padding: 12px 32px; font-size: 1rem; font-weight: 700;
+      border: none; border-radius: 16px;
+      background: #764ba2; color: #fff; cursor: pointer;
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      body { padding: 8px 16px; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
+      .back { width: 100%; margin-bottom: 4px; }
+      h1 { width: 100%; font-size: 1.3rem; margin-bottom: 6px; text-align: center; }
+      .controls { max-width: 200px; flex-direction: column; gap: 8px; margin-top: 0; align-self: center; }
+      .ctrl-btn { padding: 12px; font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← 놀이터로</a>
+  <h1>🐭 두더지 피하기</h1>
+  <canvas id="c"></canvas>
+  <div class="controls" id="controls" style="display:none">
+    <button class="ctrl-btn" id="leftBtn">◀ 왼쪽</button>
+    <button class="ctrl-btn" id="rightBtn">오른쪽 ▶</button>
+  </div>
+
+  <div class="overlay show" id="overlay">
+    <div class="box">
+      <div class="em" id="overlayEm">🐰</div>
+      <h2 id="overlayTitle">두더지 피하기</h2>
+      <p id="overlayMsg">떨어지는 두더지를 피해<br/>최대한 오래 버텨봐요!<br/><br/>◀ ▶ 버튼 또는 방향키로 이동</p>
+      <button onclick="startGame()">🎮 시작!</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    const LANES = 3;
+    const SZ = 52;
+
+    let W, H, laneW;
+    let playerLane = 1;
+    let moles = [];
+    let lives = 3;
+    let score = 0;
+    let spawnDelay = 1800;
+    let fallSpeed = 3.5;
+    let lastSpawn = 0;
+    let raf = null;
+    let running = false;
+    let lastTs = 0;
+
+    function resize() {
+      W = Math.min(window.innerWidth - 40, 380);
+      H = Math.min(window.innerHeight - 220, 520);
+      if (window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches) {
+        H = Math.min(window.innerHeight - 100, 380);
+      }
+      canvas.width = W;
+      canvas.height = H;
+      laneW = W / LANES;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function laneX(l) { return laneW * (l + 0.5); }
+
+    function drawBg() {
+      ctx.fillStyle = '#1a0a2e';
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 14]);
+      for (let i = 1; i < LANES; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * laneW, 0);
+        ctx.lineTo(i * laneW, H);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+      ctx.beginPath();
+      ctx.moveTo(0, H - 68); ctx.lineTo(W, H - 68);
+      ctx.stroke();
+    }
+
+    function loop(ts) {
+      if (!running) return;
+      const dt = Math.min((ts - lastTs) / 16.67, 3);
+      lastTs = ts;
+
+      ctx.clearRect(0, 0, W, H);
+      drawBg();
+
+      if (ts - lastSpawn > spawnDelay) {
+        moles.push({ lane: Math.floor(Math.random() * LANES), y: -SZ });
+        lastSpawn = ts;
+        spawnDelay = Math.max(650, spawnDelay - 25);
+        fallSpeed = Math.min(9, fallSpeed + 0.12);
+      }
+
+      const playerY = H - 52;
+      let dead = false;
+
+      moles = moles.filter(m => {
+        m.y += fallSpeed * dt;
+        if (m.lane === playerLane && Math.abs(m.y - playerY) < SZ * 0.7) {
+          lives--;
+          flashRed();
+          if (lives <= 0) dead = true;
+          return false;
+        }
+        if (m.y > H + SZ) { score++; return false; }
+        return true;
+      });
+
+      if (dead) { endGame(); return; }
+
+      ctx.font = `${SZ}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (const m of moles) ctx.fillText('🐭', laneX(m.lane), m.y);
+      ctx.fillText('🐰', laneX(playerLane), playerY);
+
+      // HUD
+      ctx.font = '20px serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('❤️'.repeat(lives) + '🖤'.repeat(Math.max(0, 3 - lives)), 8, 8);
+      ctx.font = 'bold 15px sans-serif';
+      ctx.fillStyle = '#ffe066';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'top';
+      ctx.fillText(`⭐ ${score}`, W - 8, 12);
+
+      raf = requestAnimationFrame(loop);
+    }
+
+    let flashId = null;
+    function flashRed() {
+      canvas.style.boxShadow = '0 0 0 5px #ff5252, 0 8px 32px rgba(0,0,0,0.3)';
+      clearTimeout(flashId);
+      flashId = setTimeout(() => { canvas.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)'; }, 300);
+    }
+
+    function startGame() {
+      lives = 3; score = 0; playerLane = 1;
+      moles = []; spawnDelay = 1800; fallSpeed = 3.5; lastSpawn = 0;
+      running = true;
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('controls').style.display = '';
+      lastTs = performance.now();
+      raf = requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+      running = false;
+      cancelAnimationFrame(raf);
+      document.getElementById('overlayEm').textContent = score >= 20 ? '🏆' : '😵';
+      document.getElementById('overlayTitle').textContent = '게임 종료!';
+      const praise = score >= 20 ? '🌟 대단해요!' : score >= 10 ? '👍 잘했어요!' : '💪 다시 해봐요!';
+      document.getElementById('overlayMsg').textContent = `${score}마리를 피했어요!\n${praise}`;
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    document.getElementById('leftBtn').addEventListener('pointerdown', e => {
+      e.preventDefault();
+      if (running) playerLane = Math.max(0, playerLane - 1);
+    });
+    document.getElementById('rightBtn').addEventListener('pointerdown', e => {
+      e.preventDefault();
+      if (running) playerLane = Math.min(2, playerLane + 1);
+    });
+
+    canvas.addEventListener('pointerdown', e => {
+      if (!running) return;
+      const x = e.clientX - canvas.getBoundingClientRect().left;
+      if (x < W / 3) playerLane = Math.max(0, playerLane - 1);
+      else if (x > W * 2 / 3) playerLane = Math.min(2, playerLane + 1);
+    });
+
+    document.addEventListener('keydown', e => {
+      if (!running) return;
+      if (e.key === 'ArrowLeft'  || e.key === 'a') playerLane = Math.max(0, playerLane - 1);
+      if (e.key === 'ArrowRight' || e.key === 'd') playerLane = Math.min(2, playerLane + 1);
+    });
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+  </script>
+</body>
+</html>

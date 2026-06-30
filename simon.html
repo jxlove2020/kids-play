@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>색 순서 기억</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#e74c3c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="놀이터" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .back {
+      align-self: flex-start;
+      text-decoration: none;
+      color: rgba(255,255,255,0.85);
+      font-size: 1rem;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.12);
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .back:hover { background: rgba(255,255,255,0.22); }
+    h1 { font-size: 2rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); margin-bottom: 10px; }
+    .status {
+      color: rgba(255,255,255,0.85);
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: 18px;
+      min-height: 1.5em; text-align: center;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: min(360px, calc(100vw - 40px));
+      height: min(360px, calc(100vw - 40px));
+      margin-bottom: 20px;
+    }
+    .sbtn {
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      transition: filter 0.1s, transform 0.1s;
+      filter: brightness(0.45);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .sbtn.lit {
+      filter: brightness(1.1);
+      transform: scale(0.95);
+    }
+    #red    { background: #e74c3c; }
+    #blue   { background: #3498db; }
+    #green  { background: #2ecc71; }
+    #yellow { background: #f1c40f; }
+    .round-badge {
+      font-size: 1.1rem; font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,0.14);
+      padding: 8px 24px; border-radius: 20px;
+    }
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      align-items: center; justify-content: center; z-index: 10;
+    }
+    .overlay.show { display: flex; }
+    .box {
+      background: #fff; border-radius: 28px;
+      padding: 40px 48px; text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      max-width: 320px; width: 90%;
+    }
+    .box .em { font-size: 3.5rem; margin-bottom: 10px; }
+    .box h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .box p { color: #888; margin-bottom: 24px; line-height: 1.7; white-space: pre-line; }
+    .box button {
+      padding: 12px 32px; font-size: 1rem; font-weight: 700;
+      border: none; border-radius: 16px;
+      background: #e74c3c; color: #fff; cursor: pointer;
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      body { padding: 8px 20px; flex-direction: row; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 10px; }
+      .back { width: 100%; margin-bottom: 4px; }
+      h1 { width: 100%; font-size: 1.3rem; margin-bottom: 4px; text-align: center; }
+      .status { width: 100%; margin-bottom: 6px; font-size: 0.9rem; }
+      .board { width: min(240px, 42vw); height: min(240px, 42vw); gap: 8px; margin-bottom: 0; }
+      .round-badge { align-self: center; font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← 놀이터로</a>
+  <h1>🎨 색 순서 기억</h1>
+  <div class="status" id="status">시작 버튼을 눌러봐요!</div>
+
+  <div class="board">
+    <button class="sbtn" id="red"    onclick="press('red')"></button>
+    <button class="sbtn" id="blue"   onclick="press('blue')"></button>
+    <button class="sbtn" id="green"  onclick="press('green')"></button>
+    <button class="sbtn" id="yellow" onclick="press('yellow')"></button>
+  </div>
+
+  <div class="round-badge">🌟 <span id="roundNum">0</span> 단계</div>
+
+  <div class="overlay show" id="overlay">
+    <div class="box">
+      <div class="em" id="oEm">🎨</div>
+      <h2 id="oTitle">색 순서 기억</h2>
+      <p id="oMsg">컴퓨터가 보여주는 색깔 순서를<br/>기억하고 똑같이 눌러봐요!</p>
+      <button onclick="startGame()">🎮 시작!</button>
+    </div>
+  </div>
+
+  <script>
+    const COLORS = ['red', 'blue', 'green', 'yellow'];
+    let seq = [], idx = 0, round = 0, accepting = false;
+
+    function startGame() {
+      seq = []; idx = 0; round = 0; accepting = false;
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('roundNum').textContent = 0;
+      setTimeout(nextRound, 600);
+    }
+
+    function nextRound() {
+      round++;
+      idx = 0;
+      accepting = false;
+      seq.push(COLORS[Math.floor(Math.random() * 4)]);
+      document.getElementById('roundNum').textContent = round;
+      document.getElementById('status').textContent = `${round}단계 잘 봐요! 👀`;
+      playSeq();
+    }
+
+    async function playSeq() {
+      accepting = false;
+      await sleep(300);
+      for (const c of seq) {
+        await light(c, 520);
+        await sleep(160);
+      }
+      accepting = true;
+      document.getElementById('status').textContent = '이제 따라해봐요! 👆';
+    }
+
+    function light(color, ms) {
+      return new Promise(resolve => {
+        const el = document.getElementById(color);
+        el.classList.add('lit');
+        setTimeout(() => { el.classList.remove('lit'); resolve(); }, ms);
+      });
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function press(color) {
+      if (!accepting) return;
+      light(color, 180);
+      if (color === seq[idx]) {
+        idx++;
+        if (idx === seq.length) {
+          accepting = false;
+          const praise = round >= 10 ? '🌟 천재!' : round >= 5 ? '👍 훌륭해요!' : '😊 잘했어요!';
+          document.getElementById('status').textContent = `${round}단계 성공! ${praise}`;
+          setTimeout(nextRound, 1000);
+        }
+      } else {
+        accepting = false;
+        gameOver();
+      }
+    }
+
+    function gameOver() {
+      document.getElementById('oEm').textContent = round >= 5 ? '🏆' : '😅';
+      document.getElementById('oTitle').textContent = '게임 종료!';
+      const praise = round >= 10 ? '🌟 대단해요!' : round >= 5 ? '👍 잘했어요!' : '💪 다시 해봐요!';
+      document.getElementById('oMsg').textContent = `${round}단계까지 도달했어요!\n${praise}`;
+      document.getElementById('overlay').classList.add('show');
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+  </script>
+</body>
+</html>
