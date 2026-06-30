@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>두더지 잡기</title>
+  <title>개구리 잡기</title>
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#56ab2f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -116,7 +116,7 @@
 </head>
 <body>
   <a class="back" href="index.html">← 놀이터로</a>
-  <h1>🔨 두더지 잡기</h1>
+  <h1>🥍 개구리 잡기</h1>
   <div class="info-bar">
     <span>⏱ <span id="timer">30</span>초</span>
     <span>🎯 <span id="score">0</span>마리</span>
@@ -142,7 +142,7 @@
     for (let i = 0; i < TOTAL; i++) {
       const h = document.createElement('div');
       h.className = 'hole';
-      h.innerHTML = '<div class="mole">🐭</div>';
+      h.innerHTML = '<div class="mole">🐸</div>';
       h.addEventListener('pointerdown', e => { e.preventDefault(); whack(h); });
       grid.appendChild(h);
     }
