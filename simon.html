@@ -296,7 +296,7 @@
     buildBoard();
   </script>
   <script>
-    document.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
+    document.addEventListener('touchmove', e => { if (e.cancelable && document.body.scrollHeight <= window.innerHeight) e.preventDefault(); }, { passive: false });
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
     }
