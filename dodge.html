@@ -22,6 +22,7 @@
       padding: 20px;
       user-select: none;
       -webkit-user-select: none;
+      overscroll-behavior: none;
     }
     .back {
       align-self: flex-start;
@@ -82,6 +83,11 @@
       border: none; border-radius: 16px;
       background: #764ba2; color: #fff; cursor: pointer;
     }
+    .box .back-link {
+      display: block; margin-top: 14px;
+      color: #bbb; font-size: 0.85rem; text-decoration: none;
+    }
+    .box .back-link:hover { color: #888; }
     @media (orientation: landscape) and (max-height: 500px) {
       body { padding: 8px 16px; flex-direction: row; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
       .back { width: 100%; margin-bottom: 4px; }
@@ -106,6 +112,7 @@
       <h2 id="overlayTitle">두더지 피하기</h2>
       <p id="overlayMsg">떨어지는 두더지를 피해<br/>최대한 오래 버텨봐요!<br/><br/>◀ ▶ 버튼 또는 방향키로 이동</p>
       <button onclick="startGame()">🎮 시작!</button>
+      <a class="back-link" href="index.html">← 놀이터로</a>
     </div>
   </div>
 
@@ -263,6 +270,7 @@
     });
   </script>
   <script>
+    document.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
     }

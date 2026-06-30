@@ -22,6 +22,7 @@
       flex-direction: column;
       align-items: center;
       padding: 24px 16px 40px;
+      overscroll-behavior: none;
     }
 
     /* ── 뒤로가기 ── */
@@ -549,6 +550,7 @@
   </script>
 
   <script>
+    document.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
     }

@@ -22,6 +22,7 @@
       padding: 20px;
       user-select: none;
       -webkit-user-select: none;
+      overscroll-behavior: none;
     }
     .back {
       align-self: flex-start;
@@ -67,9 +68,9 @@
       color: #555;
     }
     .box .mode-btn.active {
-      background: #e74c3c;
+      background: #667eea;
       color: #fff;
-      border-color: #e74c3c;
+      border-color: #667eea;
     }
 
     .status {
@@ -124,8 +125,13 @@
     .box button {
       padding: 12px 32px; font-size: 1rem; font-weight: 700;
       border: none; border-radius: 16px;
-      background: #e74c3c; color: #fff; cursor: pointer;
+      background: #2ecc71; color: #fff; cursor: pointer;
     }
+    .box .back-link {
+      display: block; margin-top: 14px;
+      color: #bbb; font-size: 0.85rem; text-decoration: none;
+    }
+    .box .back-link:hover { color: #888; }
 
     @media (orientation: landscape) and (max-height: 500px) {
       body { padding: 8px 20px; flex-direction: row; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 8px; }
@@ -157,6 +163,7 @@
         <button class="mode-btn"        data-mode="hard"   onclick="setMode(this)">고급 16칸</button>
       </div>
       <button onclick="startGame()">🎮 시작!</button>
+      <a class="back-link" href="index.html">← 놀이터로</a>
     </div>
   </div>
 
@@ -289,6 +296,7 @@
     buildBoard();
   </script>
   <script>
+    document.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
     }

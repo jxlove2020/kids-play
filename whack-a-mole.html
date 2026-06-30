@@ -22,6 +22,7 @@
       padding: 20px;
       user-select: none;
       -webkit-user-select: none;
+      overscroll-behavior: none;
     }
     .back {
       align-self: flex-start;
@@ -202,6 +203,7 @@
     }
   </script>
   <script>
+    document.addEventListener('touchmove', e => { if (e.cancelable) e.preventDefault(); }, { passive: false });
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
     }
