@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>어린이 놀이터</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#667eea" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="놀이터" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      margin-bottom: 8px;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 36px 20px;
+      text-align: center;
+      text-decoration: none;
+      color: #333;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+    }
+
+    .card .emoji {
+      font-size: 3.5rem;
+    }
+
+    .card .title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #222;
+    }
+
+    .card .desc {
+      font-size: 0.88rem;
+      color: #888;
+      line-height: 1.5;
+    }
+
+    .card.number  { border-top: 6px solid #ff6b6b; }
+    .card.capital { border-top: 6px solid #339af0; }
+    .card.memory  { border-top: 6px solid #51cf66; }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      body      { padding: 14px 24px; }
+      header    { margin-bottom: 16px; }
+      header h1 { font-size: 1.9rem; }
+      header p  { font-size: 0.95rem; }
+      .grid     { gap: 12px; }
+      .card     { padding: 18px 14px; gap: 10px; }
+      .card .emoji { font-size: 2.5rem; }
+      .card .title { font-size: 1.1rem; }
+      .card .desc  { font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🎮 어린이 놀이터</h1>
+    <p>하고 싶은 놀이를 골라봐요!</p>
+  </header>
+
+  <div class="grid">
+
+    <a class="card number" href="number-guess.html">
+      <div class="emoji">🔢</div>
+      <div class="title">Up & Down 수 맞추기</div>
+      <div class="desc">숨겨진 숫자를 맞춰보세요!<br/>힌트를 보며 도전해봐요</div>
+    </a>
+
+    <a class="card capital" href="country-capital.html">
+      <div class="emoji">🌍</div>
+      <div class="title">나라 & 수도 맞추기</div>
+      <div class="desc">나라 이름을 보고<br/>수도를 맞춰보세요!</div>
+    </a>
+
+    <a class="card memory" href="memory-game.html">
+      <div class="emoji">🃏</div>
+      <div class="title">기억력 게임</div>
+      <div class="desc">카드를 뒤집어서<br/>같은 그림을 찾아보세요!</div>
+    </a>
+
+  </div>
+
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+  </script>
+</body>
+</html>

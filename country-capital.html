@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>나라 & 수도 맞추기</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#4facfe" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="놀이터" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <script src="data/countries.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 40px;
+    }
+
+    /* ── 뒤로가기 ── */
+    .back {
+      align-self: flex-start;
+      text-decoration: none;
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+      background: rgba(255,255,255,0.25);
+      padding: 7px 16px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .back:hover { background: rgba(255,255,255,0.45); }
+
+    h1 {
+      font-size: 2rem;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      margin-bottom: 12px;
+    }
+
+    /* ── 레벨 배지 ── */
+    .level-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.22);
+      border-radius: 24px;
+      padding: 10px 20px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .lv-pill {
+      background: #fff;
+      color: #4facfe;
+      font-weight: 900;
+      font-size: 1rem;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+    .lv-name {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+    .lv-pool {
+      color: rgba(255,255,255,0.85);
+      font-size: 0.85rem;
+    }
+    .lv-hint {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.8rem;
+    }
+
+    /* ── 정보 바 ── */
+    .info-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .info-bar span {
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 5px 14px;
+      border-radius: 20px;
+    }
+
+    /* ── 퀴즈 카드 ── */
+    .quiz-area { width: 100%; max-width: 500px; }
+
+    .card {
+      background: #fff;
+      border-radius: 28px;
+      padding: 28px 24px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.13);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 7px;
+      background: #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4facfe, #00f2fe);
+      border-radius: 8px;
+      transition: width 0.4s;
+    }
+
+    .question-no {
+      font-size: 0.82rem;
+      color: #bbb;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    /* ── 국기 이미지 ── */
+    .flag-area {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 14px;
+      height: 80px;
+      align-items: center;
+    }
+    .flag-img {
+      height: 72px;
+      width: auto;
+      max-width: 120px;
+      border-radius: 8px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+      object-fit: cover;
+    }
+    .flag-emoji {
+      font-size: 4rem;
+      line-height: 1;
+    }
+
+    .question {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #222;
+      text-align: center;
+      margin-bottom: 22px;
+      line-height: 1.5;
+    }
+    .question .country-name { color: #4facfe; }
+
+    /* ── 보기 버튼 ── */
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .choice-btn {
+      padding: 14px 8px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      border: 2px solid #e9ecef;
+      border-radius: 14px;
+      background: #f8f9fa;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1.35;
+    }
+    .choice-btn:hover:not(:disabled) {
+      border-color: #4facfe;
+      background: #e8f4ff;
+      color: #4facfe;
+    }
+    .choice-btn.correct { border-color: #51cf66; background: #d3f9d8; color: #2f9e44; }
+    .choice-btn.wrong   { border-color: #ff6b6b; background: #ffe3e3; color: #c92a2a; }
+    .choice-btn:disabled { cursor: default; }
+
+    .feedback {
+      font-size: 1.1rem;
+      font-weight: 700;
+      min-height: 32px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .feedback.ok   { color: #51cf66; }
+    .feedback.fail { color: #ff6b6b; }
+
+    .btn-next {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      background: #4facfe;
+      color: #fff;
+      cursor: pointer;
+      display: none;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-next:hover { opacity: 0.88; transform: scale(0.98); }
+    .btn-next.visible { display: block; }
+
+    /* ── 결과 화면 ── */
+    .result-screen { display: none; text-align: center; }
+    .result-screen.show { display: block; }
+
+    .result-emoji { font-size: 4.5rem; margin-bottom: 10px; }
+    .result-title { font-size: 1.8rem; font-weight: 900; color: #222; margin-bottom: 6px; }
+    .result-score { font-size: 1rem; color: #888; margin-bottom: 16px; }
+
+    .level-change {
+      padding: 14px 18px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.6;
+    }
+    .level-change.up {
+      background: #d3f9d8;
+      color: #2f9e44;
+      border: 2px solid #51cf66;
+    }
+    .level-change.up-new {
+      background: linear-gradient(135deg, #d3f9d8, #e8f4ff);
+      color: #1971c2;
+      border: 2px solid #74c0fc;
+    }
+    .level-change.stay {
+      background: #fff9db;
+      color: #856404;
+      border: 2px solid #ffd43b;
+    }
+
+    .btn-retry {
+      width: 100%;
+      padding: 15px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      background: #4facfe;
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-retry:hover { opacity: 0.88; transform: scale(0.98); }
+
+    /* ── 레벨 리셋 버튼 ── */
+    .btn-reset-level {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 2px solid #dee2e6;
+      border-radius: 12px;
+      background: #f8f9fa;
+      color: #999;
+      cursor: pointer;
+    }
+    .btn-reset-level:hover { background: #fff0f0; color: #fa5252; border-color: #fa5252; }
+
+    @media (max-width: 380px) {
+      .choice-btn { font-size: 0.82rem; padding: 12px 6px; }
+      h1 { font-size: 1.7rem; }
+    }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      body { padding: 8px 16px 12px; }
+      .back { margin-bottom: 6px; }
+      h1 { font-size: 1.4rem; margin-bottom: 6px; }
+      .level-banner { padding: 5px 12px; margin-bottom: 6px; font-size: 0.85rem; }
+      .lv-hint { display: none; }
+      .info-bar { margin-bottom: 7px; gap: 8px; }
+      .info-bar span { font-size: 0.8rem; padding: 4px 10px; }
+
+      /* 퀴즈 카드: 좌(국기+문제) / 우(보기) 2컬럼 */
+      .card {
+        padding: 12px 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 16px;
+        align-items: start;
+      }
+      .progress-bar { grid-column: 1 / -1; margin-bottom: 6px; }
+      .question-no  { grid-column: 1 / -1; margin-bottom: 4px; }
+      .flag-area    { grid-column: 1; height: 48px; margin-bottom: 6px; }
+      .flag-img     { height: 44px; }
+      .flag-emoji   { font-size: 2.3rem; }
+      .question     { grid-column: 1; font-size: 0.98rem; margin-bottom: 6px; }
+      .choices      { grid-column: 2; grid-row: 3 / 8; grid-template-columns: 1fr; gap: 7px; margin-bottom: 0; }
+      .choice-btn   { padding: 9px 8px; font-size: 0.85rem; }
+      .feedback     { grid-column: 1; font-size: 0.88rem; min-height: 18px; margin-bottom: 5px; }
+      .btn-next     { grid-column: 1; padding: 8px; font-size: 0.88rem; }
+
+      /* 결과 화면은 단일 컬럼 유지 */
+      .result-screen.show { display: block; }
+    }
+  </style>
+</head>
+<body>
+
+  <a class="back" href="index.html">← 놀이터로</a>
+  <h1>🌍 나라 &amp; 수도 맞추기</h1>
+
+  <!-- 레벨 배지 -->
+  <div class="level-banner">
+    <span class="lv-pill">Lv.<span id="lvNum">1</span></span>
+    <span class="lv-name" id="lvName">🌱 입문</span>
+    <span class="lv-pool" id="lvPool">20개 나라</span>
+    <span class="lv-hint">· 7개↑ 정답 시 레벨 업!</span>
+  </div>
+
+  <!-- 정보 바 -->
+  <div class="info-bar">
+    <span>❓ <span id="qNo">1</span> / <span id="qTotal">10</span></span>
+    <span>⭐ <span id="score">0</span>점</span>
+    <span>✅ <span id="correct">0</span>  ❌ <span id="wrong">0</span></span>
+  </div>
+
+  <div class="quiz-area">
+
+    <!-- 퀴즈 카드 -->
+    <div class="card" id="quizCard">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="question-no" id="questionNo">1 / 10</div>
+
+      <div class="flag-area">
+        <img id="flagImg" class="flag-img" src="" alt=""
+             onerror="this.style.display='none'; document.getElementById('flagEmoji').style.display='block'">
+        <div id="flagEmoji" class="flag-emoji" style="display:none"></div>
+      </div>
+
+      <div class="question" id="question"></div>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="btn-next" id="btnNext" onclick="nextQuestion()">다음 문제 →</button>
+    </div>
+
+    <!-- 결과 화면 -->
+    <div class="card result-screen" id="resultScreen">
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="level-change" id="levelChange"></div>
+      <button class="btn-retry" onclick="startGame()">🔄 다시 도전!</button>
+      <button class="btn-reset-level" onclick="resetLevel()">레벨 초기화 (Lv.1부터)</button>
+    </div>
+
+  </div>
+
+  <script>
+    const LEVEL_KEY  = 'kidsplay-country-level';
+    const POOL_SIZES = [20, 35, 50, 65, 80, 90, 110, 130, 140, 165, 188];
+
+    let level = Math.max(1, parseInt(localStorage.getItem(LEVEL_KEY) || '1'));
+    let pool, queue, currentQ, scoreCount, correctCount, wrongCount, answered;
+
+    function poolSize(lv) {
+      return POOL_SIZES[Math.min(lv - 1, POOL_SIZES.length - 1)];
+    }
+
+    function getPool(lv) {
+      return COUNTRIES.slice(0, poolSize(lv));
+    }
+
+    function levelName(lv) {
+      if (lv === 1)   return '🌱 입문';
+      if (lv <= 3)    return '📖 초급';
+      if (lv <= 5)    return '📚 중급';
+      if (lv <= 7)    return '⭐ 고급';
+      if (lv <= 9)    return '🌟 전문가';
+      return '👑 세계 지리 왕';
+    }
+
+    function updateLevelUI() {
+      document.getElementById('lvNum').textContent  = level;
+      document.getElementById('lvName').textContent = levelName(level);
+      document.getElementById('lvPool').textContent = `${poolSize(level)}개 나라`;
+    }
+
+    function startGame() {
+      pool     = getPool(level);
+      queue    = shuffle([...pool]).slice(0, 10);
+      currentQ = 0;
+      scoreCount = correctCount = wrongCount = 0;
+      answered = false;
+
+      document.getElementById('qTotal').textContent   = queue.length;
+      document.getElementById('score').textContent    = 0;
+      document.getElementById('correct').textContent  = 0;
+      document.getElementById('wrong').textContent    = 0;
+      document.getElementById('quizCard').style.display = '';
+      document.getElementById('resultScreen').classList.remove('show');
+
+      updateLevelUI();
+      showQuestion();
+    }
+
+    function showQuestion() {
+      answered = false;
+      const q     = queue[currentQ];
+      const total = queue.length;
+
+      document.getElementById('qNo').textContent        = currentQ + 1;
+      document.getElementById('questionNo').textContent = `${currentQ + 1} / ${total}`;
+      document.getElementById('progressFill').style.width = `${(currentQ / total) * 100}%`;
+
+      // 국기 이미지 (flagcdn.com)
+      const img   = document.getElementById('flagImg');
+      const emoji = document.getElementById('flagEmoji');
+      img.style.display   = '';
+      emoji.style.display = 'none';
+      img.src = `https://flagcdn.com/w80/${q.code}.png`;
+      img.alt = q.flag;
+      emoji.textContent = q.flag;
+
+      document.getElementById('question').innerHTML =
+        `<span class="country-name">${q.country}</span>의 수도는?`;
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className   = 'feedback';
+      document.getElementById('btnNext').classList.remove('visible');
+
+      // 보기 4개 (정답 1 + 오답 3)
+      const wrongs  = shuffle(pool.filter(d => d.capital !== q.capital)).slice(0, 3).map(d => d.capital);
+      const choices = shuffle([q.capital, ...wrongs]);
+
+      const el = document.getElementById('choices');
+      el.innerHTML = '';
+      choices.forEach(cap => {
+        const btn = document.createElement('button');
+        btn.className   = 'choice-btn';
+        btn.textContent = cap;
+        btn.onclick     = () => selectAnswer(btn, cap, q.capital);
+        el.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(btn, selected, answer) {
+      if (answered) return;
+      answered = true;
+
+      document.querySelectorAll('.choice-btn').forEach(b => {
+        b.disabled = true;
+        if (b.textContent === answer) b.classList.add('correct');
+      });
+
+      const fb = document.getElementById('feedback');
+      if (selected === answer) {
+        btn.classList.add('correct');
+        fb.textContent = '🎉 정답이에요!';
+        fb.className   = 'feedback ok';
+        scoreCount += 10;
+        correctCount++;
+        document.getElementById('score').textContent   = scoreCount;
+        document.getElementById('correct').textContent = correctCount;
+      } else {
+        btn.classList.add('wrong');
+        fb.textContent = `❌ 정답은 "${answer}"이에요!`;
+        fb.className   = 'feedback fail';
+        wrongCount++;
+        document.getElementById('wrong').textContent = wrongCount;
+      }
+
+      document.getElementById('btnNext').classList.add('visible');
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ >= queue.length) showResult();
+      else showQuestion();
+    }
+
+    function showResult() {
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('quizCard').style.display   = 'none';
+      document.getElementById('resultScreen').classList.add('show');
+
+      const total   = queue.length;
+      const pct     = Math.round((correctCount / total) * 100);
+      const levelUp = correctCount >= 7;
+
+      let emoji, title;
+      if (pct === 100)     { emoji = '🏆'; title = '완벽해요!'; }
+      else if (pct >= 80)  { emoji = '🌟'; title = '훌륭해요!'; }
+      else if (pct >= 70)  { emoji = '😊'; title = '잘했어요!'; }
+      else if (pct >= 50)  { emoji = '🙂'; title = '조금만 더!'; }
+      else                 { emoji = '💪'; title = '다시 해봐요!'; }
+
+      document.getElementById('resultEmoji').textContent = emoji;
+      document.getElementById('resultTitle').textContent = title;
+      document.getElementById('resultScore').textContent =
+        `${total}문제 중 ${correctCount}개 정답 · ${scoreCount}점`;
+
+      const lcEl  = document.getElementById('levelChange');
+      const oldSz = poolSize(level);
+
+      if (levelUp) {
+        level++;
+        localStorage.setItem(LEVEL_KEY, level);
+        updateLevelUI();
+        const newSz = poolSize(level);
+
+        if (newSz > oldSz) {
+          lcEl.innerHTML  = `🎊 레벨 업! <strong>Lv.${level}</strong>으로 이동!<br><small>새 나라 추가! 이제 ${newSz}개 나라 중 출제돼요 🌍</small>`;
+          lcEl.className  = 'level-change up-new';
+        } else {
+          lcEl.innerHTML  = `🎊 레벨 업! <strong>Lv.${level}</strong>으로 이동!`;
+          lcEl.className  = 'level-change up';
+        }
+      } else {
+        lcEl.innerHTML = `아쉬워요! 7개 이상 맞추면 레벨 업이에요 💪<br><small>현재 Lv.${level} · ${oldSz}개 나라</small>`;
+        lcEl.className = 'level-change stay';
+      }
+    }
+
+    function resetLevel() {
+      if (!confirm('레벨을 Lv.1로 초기화할까요?')) return;
+      level = 1;
+      localStorage.setItem(LEVEL_KEY, level);
+      startGame();
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // 초기 시작
+    startGame();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+  </script>
+</body>
+</html>
