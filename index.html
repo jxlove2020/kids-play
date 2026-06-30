@@ -20,88 +20,86 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       padding: 40px 20px;
     }
 
     header {
       text-align: center;
-      margin-bottom: 48px;
+      margin-bottom: 44px;
     }
-
     header h1 {
-      font-size: 3rem;
+      font-size: 2.4rem;
       color: #fff;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      margin-bottom: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      margin-bottom: 6px;
     }
-
     header p {
-      font-size: 1.1rem;
-      color: rgba(255,255,255,0.85);
+      font-size: 1rem;
+      color: rgba(255,255,255,0.8);
     }
 
-    .grid {
+    .icon-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 24px;
-      width: 100%;
-      max-width: 900px;
+      grid-template-columns: repeat(3, 100px);
+      gap: 20px;
+    }
+    @media (min-width: 500px) {
+      .icon-grid { grid-template-columns: repeat(6, 100px); }
     }
 
-    .card {
-      background: #fff;
-      border-radius: 24px;
-      padding: 36px 20px;
-      text-align: center;
-      text-decoration: none;
-      color: #333;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-      transition: transform 0.2s, box-shadow 0.2s;
-      cursor: pointer;
+    .icon {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
+      gap: 10px;
+      text-decoration: none;
+      padding: 12px 8px;
+      border-radius: 18px;
+      transition: background 0.15s, transform 0.15s;
+    }
+    .icon:hover  { background: rgba(255,255,255,0.18); transform: scale(1.08); }
+    .icon:active { transform: scale(0.96); }
+
+    .icon-face {
+      width: 76px;
+      height: 76px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.28);
     }
 
-    .card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
-    }
-
-    .card .emoji {
-      font-size: 3.5rem;
-    }
-
-    .card .title {
-      font-size: 1.25rem;
+    .icon-label {
+      font-size: 0.72rem;
       font-weight: 700;
-      color: #222;
+      color: #fff;
+      text-shadow: 0 1px 5px rgba(0,0,0,0.55);
+      text-align: center;
+      line-height: 1.4;
     }
 
-    .card .desc {
-      font-size: 0.88rem;
-      color: #888;
-      line-height: 1.5;
-    }
-
-    .card.number  { border-top: 6px solid #ff6b6b; }
-    .card.capital { border-top: 6px solid #339af0; }
-    .card.memory  { border-top: 6px solid #51cf66; }
-    .card.whack   { border-top: 6px solid #56ab2f; }
-    .card.dodge   { border-top: 6px solid #9b59b6; }
-    .card.simon   { border-top: 6px solid #f39c12; }
+    /* 아이콘 색상 */
+    .c-number  { background: linear-gradient(145deg, #ff8a80, #e53935); }
+    .c-capital { background: linear-gradient(145deg, #64b5f6, #1565c0); }
+    .c-memory  { background: linear-gradient(145deg, #69f0ae, #2e7d32); }
+    .c-whack   { background: linear-gradient(145deg, #d4e157, #558b2f); }
+    .c-dodge   { background: linear-gradient(145deg, #ce93d8, #6a1b9a); }
+    .c-simon   { background: linear-gradient(145deg, #ffe082, #e65100); }
 
     @media (orientation: landscape) and (max-height: 500px) {
-      body      { padding: 14px 24px; }
-      header    { margin-bottom: 16px; }
-      header h1 { font-size: 1.9rem; }
-      header p  { font-size: 0.95rem; }
-      .grid     { gap: 12px; }
-      .card     { padding: 18px 14px; gap: 10px; }
-      .card .emoji { font-size: 2.5rem; }
-      .card .title { font-size: 1.1rem; }
-      .card .desc  { font-size: 0.8rem; }
+      body    { padding: 14px 20px; justify-content: flex-start; }
+      header  { margin-bottom: 16px; }
+      header h1 { font-size: 1.6rem; }
+      header p  { font-size: 0.85rem; }
+      .icon-grid {
+        grid-template-columns: repeat(6, 80px);
+        gap: 12px;
+      }
+      .icon-face  { width: 60px; height: 60px; font-size: 1.9rem; border-radius: 14px; }
+      .icon-label { font-size: 0.62rem; }
     }
   </style>
 </head>
@@ -112,42 +110,36 @@
     <p>하고 싶은 놀이를 골라봐요!</p>
   </header>
 
-  <div class="grid">
+  <div class="icon-grid">
 
-    <a class="card number" href="number-guess.html">
-      <div class="emoji">🔢</div>
-      <div class="title">Up & Down 수 맞추기</div>
-      <div class="desc">숨겨진 숫자를 맞춰보세요!<br/>힌트를 보며 도전해봐요</div>
+    <a class="icon" href="number-guess.html">
+      <div class="icon-face c-number">🔢</div>
+      <div class="icon-label">Up&Down<br/>수 맞추기</div>
     </a>
 
-    <a class="card capital" href="country-capital.html">
-      <div class="emoji">🌍</div>
-      <div class="title">나라 & 수도 맞추기</div>
-      <div class="desc">나라 이름을 보고<br/>수도를 맞춰보세요!</div>
+    <a class="icon" href="country-capital.html">
+      <div class="icon-face c-capital">🌍</div>
+      <div class="icon-label">나라&수도<br/>맞추기</div>
     </a>
 
-    <a class="card memory" href="memory-game.html">
-      <div class="emoji">🃏</div>
-      <div class="title">기억력 게임</div>
-      <div class="desc">카드를 뒤집어서<br/>같은 그림을 찾아보세요!</div>
+    <a class="icon" href="memory-game.html">
+      <div class="icon-face c-memory">🃏</div>
+      <div class="icon-label">기억력<br/>게임</div>
     </a>
 
-    <a class="card whack" href="whack-a-mole.html">
-      <div class="emoji">🔨</div>
-      <div class="title">두더지 잡기</div>
-      <div class="desc">튀어나오는 두더지를<br/>빠르게 잡아봐요!</div>
+    <a class="icon" href="whack-a-mole.html">
+      <div class="icon-face c-whack">🔨</div>
+      <div class="icon-label">두더지<br/>잡기</div>
     </a>
 
-    <a class="card dodge" href="dodge.html">
-      <div class="emoji">🐭</div>
-      <div class="title">두더지 피하기</div>
-      <div class="desc">떨어지는 두더지를<br/>피해서 도망가세요!</div>
+    <a class="icon" href="dodge.html">
+      <div class="icon-face c-dodge">🐭</div>
+      <div class="icon-label">두더지<br/>피하기</div>
     </a>
 
-    <a class="card simon" href="simon.html">
-      <div class="emoji">🎨</div>
-      <div class="title">색 순서 기억</div>
-      <div class="desc">색깔 순서를 기억하고<br/>따라해봐요!</div>
+    <a class="icon" href="simon.html">
+      <div class="icon-face c-simon">🎨</div>
+      <div class="icon-label">색 순서<br/>기억</div>
     </a>
 
   </div>
