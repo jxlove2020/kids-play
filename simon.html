@@ -196,6 +196,7 @@
 
     let curMode = 'easy';
     let seq = [], idx = 0, round = 0, accepting = false;
+    let playId = 0, nextRoundTimer = null;
 
     function setMode(btn) {
       curMode = btn.dataset.mode;
@@ -222,6 +223,8 @@
 
     function resetState() {
       seq = []; idx = 0; round = 0; accepting = false;
+      playId++;
+      clearTimeout(nextRoundTimer); nextRoundTimer = null;
       document.getElementById('roundNum').textContent = 0;
       document.getElementById('status').textContent = '시작 버튼을 눌러봐요!';
     }
@@ -230,7 +233,7 @@
       buildBoard();
       resetState();
       document.getElementById('overlay').classList.remove('show');
-      setTimeout(nextRound, 600);
+      nextRoundTimer = setTimeout(nextRound, 600);
     }
 
     function nextRound() {
@@ -245,13 +248,17 @@
     }
 
     async function playSeq() {
+      const id = ++playId;
       accepting = false;
       const speed = curMode === 'hard' ? 420 : curMode === 'medium' ? 480 : 540;
       await sleep(300);
-      for (const i of seq) {
+      const snapshot = [...seq];
+      for (const i of snapshot) {
+        if (id !== playId) return;
         await light(i, speed);
-        await sleep(140);
+        await sleep(100);
       }
+      if (id !== playId) return;
       accepting = true;
       document.getElementById('status').textContent = '이제 따라해봐요! 👆';
     }
@@ -276,7 +283,7 @@
           accepting = false;
           const praise = round >= 15 ? '🌟 천재!' : round >= 10 ? '🔥 대단해요!' : round >= 5 ? '👍 잘했어요!' : '😊 훌륭해요!';
           document.getElementById('status').textContent = `${round}단계 성공! ${praise}`;
-          setTimeout(nextRound, 900);
+          nextRoundTimer = setTimeout(nextRound, 900);
         }
       } else {
         accepting = false;
@@ -285,6 +292,8 @@
     }
 
     function gameOver() {
+      playId++;
+      clearTimeout(nextRoundTimer); nextRoundTimer = null;
       document.getElementById('oEm').textContent = round >= 5 ? '🏆' : '😅';
       document.getElementById('oTitle').textContent = '게임 종료!';
       const praise = round >= 15 ? '🌟 대단해요!' : round >= 10 ? '👍 잘했어요!' : round >= 5 ? '💪 잘했어요!' : '다시 해봐요!';
