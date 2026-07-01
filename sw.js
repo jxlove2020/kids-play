@@ -1,4 +1,4 @@
-const CACHE = 'kids-play-v24';
+const CACHE = 'kids-play-v25';
 
 const ASSETS = [
   './index.html',
@@ -14,6 +14,7 @@ const ASSETS = [
   './tetris.html',
   './minesweeper.html',
   './manifest.json',
+  './manifest.json?v=25',
   './data/countries.js',
 ];
 
