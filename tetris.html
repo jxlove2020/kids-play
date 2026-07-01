@@ -44,11 +44,23 @@
     }
     h1 { font-size: 1.4rem; flex: 1; text-align: center; }
 
-    .mode-bar { display: flex; gap: 8px; margin-bottom: 8px; }
+    #modeBadge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(167,139,250,0.18);
+      border: 1px solid rgba(167,139,250,0.5);
+      padding: 4px 9px;
+      border-radius: 10px;
+      white-space: nowrap;
+      color: #a78bfa;
+      flex-shrink: 0;
+    }
+    .overlay-mode-bar { display: flex; gap: 8px; justify-content: center; margin: 10px 0 16px; }
     .mode-btn {
-      padding: 5px 14px; font-size: 0.82rem; font-weight: 700;
+      padding: 7px 18px; font-size: 0.88rem; font-weight: 700;
       border: 2px solid rgba(255,255,255,0.2); border-radius: 18px;
       background: transparent; color: rgba(255,255,255,0.55); cursor: pointer;
+      transition: all 0.15s;
     }
     .mode-btn.active { background: #a78bfa; border-color: #a78bfa; color: #0f0f1a; }
 
@@ -113,9 +125,9 @@
       background: #1a1030;
       border: 2px solid rgba(167,139,250,0.4);
       border-radius: 26px;
-      padding: 34px 42px; text-align: center;
+      padding: 28px 32px; text-align: center;
       box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-      max-width: 300px; width: 90%;
+      max-width: 340px; width: 92%;
     }
     .box .em { font-size: 3rem; margin-bottom: 8px; }
     .box h2 { font-size: 1.6rem; color: #a78bfa; margin-bottom: 14px; }
@@ -130,11 +142,7 @@
   <div class="top-bar">
     <a class="back" href="index.html">← 놀이터로</a>
     <h1>🧩 테트리스</h1>
-  </div>
-  <div class="mode-bar">
-    <button class="mode-btn active" id="m-easy"   onclick="setMode('easy')">쉬움</button>
-    <button class="mode-btn"        id="m-normal" onclick="setMode('normal')">보통</button>
-    <button class="mode-btn"        id="m-hard"   onclick="setMode('hard')">어려움</button>
+    <span id="modeBadge">쉬움</span>
   </div>
 
   <div class="game-area">
@@ -174,13 +182,18 @@
     <button class="dpad-btn" onpointerdown="pd(event);move(0,1)">▼</button>
     <div class="dpad-btn dpad-empty"></div>
   </div>
-  <button class="dpad-btn dpad-drop" style="width:154px;height:40px;margin-top:4px;border-radius:10px;" onpointerdown="pd(event);hardDrop()">▼▼ 드롭</button>
+  <button class="dpad-btn dpad-drop" style="width:162px;height:48px;margin-top:4px;border-radius:10px;" onpointerdown="pd(event);hardDrop()">▼▼ 드롭</button>
 
   <div class="overlay show" id="overlay">
     <div class="box">
       <div class="em" id="boxEm">🧩</div>
       <h2 id="boxTitle">테트리스</h2>
       <div id="boxStats"></div>
+      <div class="overlay-mode-bar">
+        <button class="mode-btn active" id="m-easy"   onclick="setMode('easy')">쉬움</button>
+        <button class="mode-btn"        id="m-normal" onclick="setMode('normal')">보통</button>
+        <button class="mode-btn"        id="m-hard"   onclick="setMode('hard')">어려움</button>
+      </div>
       <div class="box-btns">
         <button class="btn-play" onclick="startGame()">🎮 시작!</button>
         <a class="btn-back-lnk" href="index.html">← 놀이터로</a>
@@ -249,9 +262,12 @@
       nCtx = document.getElementById('next').getContext('2d');
     }
 
+    const MODE_NAMES = { easy:'쉬움', normal:'보통', hard:'어려움' };
+
     function setMode(m) {
       mode = m;
       ['easy','normal','hard'].forEach(k => document.getElementById('m-'+k).classList.toggle('active', k === m));
+      document.getElementById('modeBadge').textContent = MODE_NAMES[m];
     }
 
     function emptyBoard() {
@@ -466,6 +482,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       initCanvas();
       document.getElementById('bestEl').textContent = best();
+      document.getElementById('modeBadge').textContent = MODE_NAMES[mode];
       drawBoard();
       drawNext();
 

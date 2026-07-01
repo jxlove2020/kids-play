@@ -45,14 +45,27 @@
     }
     .back:hover { background: rgba(255,255,255,0.22); }
     h1 { font-size: 1.5rem; flex: 1; text-align: center; }
-    .mode-bar {
+    #modeBadge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(57,255,20,0.15);
+      border: 1px solid rgba(57,255,20,0.5);
+      padding: 4px 9px;
+      border-radius: 10px;
+      white-space: nowrap;
+      color: #39ff14;
+      flex-shrink: 0;
+    }
+    .overlay-mode-bar {
       display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 8px;
-      margin-bottom: 10px;
+      margin: 10px 0 16px;
     }
     .mode-btn {
-      padding: 6px 16px;
-      font-size: 0.85rem;
+      padding: 7px 18px;
+      font-size: 0.88rem;
       font-weight: 700;
       border: 2px solid rgba(255,255,255,0.25);
       border-radius: 20px;
@@ -124,11 +137,11 @@
       background: #1a2e45;
       border: 2px solid rgba(57,255,20,0.4);
       border-radius: 28px;
-      padding: 36px 44px;
+      padding: 28px 32px;
       text-align: center;
       box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 30px rgba(57,255,20,0.1);
-      max-width: 320px;
-      width: 90%;
+      max-width: 340px;
+      width: 92%;
     }
     .box .em { font-size: 3.2rem; margin-bottom: 10px; }
     .box h2 { font-size: 1.7rem; color: #39ff14; margin-bottom: 8px; }
@@ -158,12 +171,7 @@
   <div class="top-bar">
     <a class="back" href="index.html">← 놀이터로</a>
     <h1>🐍 스네이크</h1>
-  </div>
-
-  <div class="mode-bar">
-    <button class="mode-btn active" id="m-easy"   onclick="setMode('easy')">쉬움</button>
-    <button class="mode-btn"        id="m-normal" onclick="setMode('normal')">보통</button>
-    <button class="mode-btn"        id="m-hard"   onclick="setMode('hard')">어려움</button>
+    <span id="modeBadge">쉬움</span>
   </div>
 
   <div class="info-bar">
@@ -192,6 +200,11 @@
       <h2 id="boxTitle">스네이크 게임</h2>
       <div class="result-score" id="boxScore"></div>
       <div class="result-best"  id="boxBest"></div>
+      <div class="overlay-mode-bar">
+        <button class="mode-btn active" id="m-easy"   onclick="setMode('easy')">쉬움</button>
+        <button class="mode-btn"        id="m-normal" onclick="setMode('normal')">보통</button>
+        <button class="mode-btn"        id="m-hard"   onclick="setMode('hard')">어려움</button>
+      </div>
       <div class="box-btns">
         <button class="btn-play" onclick="startGame()">🎮 시작!</button>
         <a class="btn-back" href="index.html" style="display:block;padding:12px 24px;font-size:1rem;font-weight:700;border-radius:16px;text-align:center;text-decoration:none;">← 놀이터로</a>
@@ -224,10 +237,13 @@
       ctx = canvas.getContext('2d');
     }
 
+    const MODE_NAMES = { easy:'쉬움', normal:'보통', hard:'어려움' };
+
     function setMode(m) {
       mode = m;
       ['easy','normal','hard'].forEach(k => document.getElementById('m-'+k).classList.toggle('active', k === m));
       document.getElementById('modeLabel').textContent = MODES[m].label;
+      document.getElementById('modeBadge').textContent = MODE_NAMES[m];
       if (!gameRunning) drawIdle();
     }
 

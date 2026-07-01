@@ -15,11 +15,13 @@
     body {
       font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
       background: #1a0030;
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 12px 16px;
+      padding: 8px 12px;
       user-select: none;
       -webkit-user-select: none;
       overscroll-behavior: none;
@@ -31,7 +33,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
     .back {
       text-decoration: none;
@@ -46,14 +48,27 @@
     .back:hover { background: rgba(255,255,255,0.22); }
     h1 { font-size: 1.5rem; flex: 1; text-align: center; }
 
-    .mode-bar {
+    #modeBadge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(192,132,252,0.2);
+      border: 1px solid rgba(192,132,252,0.5);
+      padding: 4px 9px;
+      border-radius: 10px;
+      white-space: nowrap;
+      color: #c084fc;
+      flex-shrink: 0;
+    }
+    .overlay-mode-bar {
       display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin: 10px 0 14px;
     }
     .mode-btn {
-      padding: 5px 10px;
-      font-size: 0.78rem;
+      padding: 7px 13px;
+      font-size: 0.82rem;
       font-weight: 700;
       border: 2px solid rgba(255,255,255,0.2);
       border-radius: 18px;
@@ -67,9 +82,9 @@
 
     .info-bar {
       display: flex;
-      gap: 12px;
-      margin-bottom: 8px;
-      font-size: 0.9rem;
+      gap: 10px;
+      margin-bottom: 4px;
+      font-size: 0.88rem;
       font-weight: 700;
     }
     .info-bar span {
@@ -89,8 +104,8 @@
 
     .tap-row {
       display: flex;
-      gap: 7px;
-      margin-top: 10px;
+      gap: 6px;
+      margin-top: 6px;
       width: 100%;
       max-width: 420px;
     }
@@ -124,10 +139,10 @@
     .judge-text {
       font-size: 1.5rem;
       font-weight: 900;
-      height: 36px;
-      line-height: 36px;
+      height: 32px;
+      line-height: 32px;
       text-align: center;
-      margin-top: 8px;
+      margin-top: 4px;
       letter-spacing: 2px;
       transition: opacity 0.15s;
     }
@@ -146,11 +161,11 @@
       background: #240045;
       border: 2px solid rgba(192,132,252,0.45);
       border-radius: 28px;
-      padding: 36px 44px;
+      padding: 28px 32px;
       text-align: center;
       box-shadow: 0 12px 40px rgba(0,0,0,0.5);
-      max-width: 320px;
-      width: 90%;
+      max-width: 360px;
+      width: 92%;
     }
     .box .em { font-size: 3.2rem; margin-bottom: 10px; }
     .box h2 { font-size: 1.7rem; color: #c084fc; margin-bottom: 16px; }
@@ -161,10 +176,14 @@
     .btn-back-link { display: block; padding: 12px 24px; font-size: 1rem; font-weight: 700; border-radius: 16px; text-align: center; text-decoration: none; background: rgba(255,255,255,0.1); color: #ccc; }
 
     @media (max-height: 700px) {
-      body { padding: 6px 12px; }
-      h1 { font-size: 1.2rem; }
-      .tap-btn { height: 52px; font-size: 1.2rem; }
-      .tap-row { margin-top: 6px; }
+      body { padding: 4px 8px; }
+      h1 { font-size: 1.15rem; }
+      .top-bar { margin-bottom: 4px; }
+      .info-bar { margin-bottom: 3px; }
+      .info-bar span { padding: 3px 10px; }
+      .tap-btn { height: 58px; font-size: 1.2rem; }
+      .tap-row { margin-top: 4px; }
+      .judge-text { margin-top: 3px; height: 26px; line-height: 26px; font-size: 1.2rem; }
     }
   </style>
 </head>
@@ -172,13 +191,7 @@
   <div class="top-bar">
     <a class="back" href="index.html">← 놀이터로</a>
     <h1>🎵 리듬 게임</h1>
-  </div>
-  <div class="mode-bar">
-    <button class="mode-btn active" id="m-lv1" onclick="setMode('lv1')">1단계 🎵</button>
-    <button class="mode-btn"        id="m-lv2" onclick="setMode('lv2')">2단계 🎵</button>
-    <button class="mode-btn"        id="m-lv3" onclick="setMode('lv3')">3단계 🎵🎵</button>
-    <button class="mode-btn"        id="m-lv4" onclick="setMode('lv4')">4단계 🎵🎵</button>
-    <button class="mode-btn"        id="m-lv5" onclick="setMode('lv5')">5단계 🎵🎵🎵</button>
+    <span id="modeBadge">1단계 ⭐</span>
   </div>
   <div class="info-bar">
     <span>🏆 <span id="scoreEl">0</span></span>
@@ -194,6 +207,13 @@
       <div class="em" id="boxEm">🎵</div>
       <h2 id="boxTitle">리듬 게임</h2>
       <div id="boxStats"></div>
+      <div class="overlay-mode-bar">
+        <button class="mode-btn active" id="m-lv1" onclick="setMode('lv1')">1단계 ⭐</button>
+        <button class="mode-btn"        id="m-lv2" onclick="setMode('lv2')">2단계 ⭐⭐</button>
+        <button class="mode-btn"        id="m-lv3" onclick="setMode('lv3')">3단계 ⭐⭐⭐</button>
+        <button class="mode-btn"        id="m-lv4" onclick="setMode('lv4')">4단계 🔥</button>
+        <button class="mode-btn"        id="m-lv5" onclick="setMode('lv5')">5단계 💀</button>
+      </div>
       <div class="box-btns">
         <button class="btn-play" onclick="startGame()">🎮 시작!</button>
         <a class="btn-back-link" href="index.html">← 놀이터로</a>
@@ -226,7 +246,8 @@
     function initCanvas() {
       canvas = document.getElementById('c');
       canvasW = Math.min(window.innerWidth - 32, 420);
-      canvasH = Math.min(window.innerHeight - 310, 320);
+      const uiH = window.innerHeight <= 700 ? 190 : 230;
+      canvasH = Math.max(120, window.innerHeight - uiH);
       canvas.width  = canvasW;
       canvas.height = canvasH;
       ctx = canvas.getContext('2d');
@@ -250,9 +271,12 @@
       }
     }
 
+    const MODE_LABELS = { lv1:'1단계 ⭐', lv2:'2단계 ⭐⭐', lv3:'3단계 ⭐⭐⭐', lv4:'4단계 🔥', lv5:'5단계 💀' };
+
     function setMode(m) {
       mode = m;
       Object.keys(MODES).forEach(k => document.getElementById('m-'+k).classList.toggle('active', k === m));
+      document.getElementById('modeBadge').textContent = MODE_LABELS[m];
       if (!gameRunning) { renderTapButtons(); initCanvas(); }
     }
 
@@ -272,15 +296,16 @@
       return result;
     }
 
-    function getAudio() {
+    async function ensureAudio() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (audioCtx.state !== 'running') await audioCtx.resume();
       return audioCtx;
     }
 
     function playHit(freq, type = 'sine', dur = 0.08) {
       try {
-        const ac = getAudio();
+        if (!audioCtx || audioCtx.state !== 'running') return;
+        const ac = audioCtx;
         const osc = ac.createOscillator();
         const gain = ac.createGain();
         osc.connect(gain); gain.connect(ac.destination);
@@ -295,7 +320,8 @@
 
     function playMiss() {
       try {
-        const ac = getAudio();
+        if (!audioCtx || audioCtx.state !== 'running') return;
+        const ac = audioCtx;
         const buf = ac.createBuffer(1, ac.sampleRate * 0.06, ac.sampleRate);
         const data = buf.getChannelData(0);
         for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * (1 - i/data.length);
@@ -307,32 +333,45 @@
       } catch(_) {}
     }
 
-    function playBeat() {
+    // Beat metronome — Web Audio look-ahead scheduler (setInterval 스로틀링에 면역)
+    let beatSchedulerId = null;
+    let nextBeatAcTime  = 0;
+    const BEAT_LOOKAHEAD = 0.15;
+    const BEAT_TICK_MS   = 35;
+
+    function schedulePendingBeats() {
+      if (!audioCtx || !gameRunning) return;
+      while (nextBeatAcTime < audioCtx.currentTime + BEAT_LOOKAHEAD) {
+        scheduleBeatAt(nextBeatAcTime);
+        nextBeatAcTime += 60 / MODES[mode].bpm;
+      }
+      beatSchedulerId = setTimeout(schedulePendingBeats, BEAT_TICK_MS);
+    }
+
+    function scheduleBeatAt(t) {
       try {
-        const ac = getAudio();
+        const ac = audioCtx;
         const osc = ac.createOscillator();
         const gain = ac.createGain();
         osc.connect(gain); gain.connect(ac.destination);
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(80, ac.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(40, ac.currentTime + 0.12);
-        gain.gain.setValueAtTime(0.4, ac.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.12);
-        osc.start(); osc.stop(ac.currentTime + 0.12);
+        osc.frequency.setValueAtTime(80, t);
+        osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+        gain.gain.setValueAtTime(0.4, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        osc.start(t);
+        osc.stop(t + 0.15);
       } catch(_) {}
     }
 
-    // Beat metronome
-    let beatIntervalId = null;
     function startBeat() {
-      const m = MODES[mode];
-      const ms = 60000 / m.bpm;
-      playBeat();
-      beatIntervalId = setInterval(playBeat, ms);
+      nextBeatAcTime = audioCtx.currentTime + 0.05;
+      schedulePendingBeats();
     }
-    function stopBeat() { clearInterval(beatIntervalId); beatIntervalId = null; }
+    function stopBeat() { clearTimeout(beatSchedulerId); beatSchedulerId = null; }
 
-    function startGame() {
+    async function startGame() {
+      await ensureAudio();
       initCanvas();
       renderTapButtons();
       document.getElementById('overlay').classList.remove('show');

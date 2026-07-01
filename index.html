@@ -41,11 +41,13 @@
 
     .icon-grid {
       display: grid;
-      grid-template-columns: repeat(3, 100px);
-      gap: 20px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 380px;
     }
     @media (min-width: 500px) {
-      .icon-grid { grid-template-columns: repeat(6, 100px); }
+      .icon-grid { grid-template-columns: repeat(6, 1fr); max-width: 720px; }
     }
 
     .icon {
