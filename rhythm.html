@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>리듬 게임</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#1a0030" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="놀이터" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
+      background: #1a0030;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 16px;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      color: #fff;
+    }
+    .top-bar {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .back {
+      text-decoration: none;
+      color: #fff;
+      font-size: 0.9rem;
+      background: rgba(255,255,255,0.12);
+      padding: 6px 14px;
+      border-radius: 16px;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .back:hover { background: rgba(255,255,255,0.22); }
+    h1 { font-size: 1.5rem; flex: 1; text-align: center; }
+
+    .mode-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .mode-btn {
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 18px;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .mode-btn.active { background: #c084fc; border-color: #c084fc; color: #1a0030; }
+
+    .info-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+    .info-bar span {
+      background: rgba(255,255,255,0.1);
+      padding: 5px 14px;
+      border-radius: 14px;
+    }
+    #comboEl { color: #fbbf24; }
+
+    canvas {
+      display: block;
+      border: 2px solid rgba(192,132,252,0.3);
+      border-radius: 10px;
+      background: #120024;
+      touch-action: none;
+    }
+
+    .tap-row {
+      display: flex;
+      gap: 7px;
+      margin-top: 10px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .tap-btn {
+      flex: 1;
+      min-width: 0;
+      height: 80px;
+      border: none;
+      border-radius: 16px;
+      font-size: 1.6rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      transition: filter 0.08s, transform 0.08s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tap-btn:active { filter: brightness(1.6); transform: scale(0.93); }
+    .btn-key { font-size: 0.68rem; font-weight: 500; opacity: 0.75; letter-spacing: 0; }
+    .tap-row[data-lanes="4"] .tap-btn { height: 76px; font-size: 1.45rem; }
+    .tap-row[data-lanes="5"] .tap-btn { height: 70px; font-size: 1.25rem; gap: 1px; }
+    .tap-0 { background: linear-gradient(180deg, #ff6b6b, #c0392b); }
+    .tap-1 { background: linear-gradient(180deg, #fbbf24, #d97706); }
+    .tap-2 { background: linear-gradient(180deg, #4ade80, #16a34a); }
+    .tap-3 { background: linear-gradient(180deg, #60a5fa, #2563eb); }
+    .tap-4 { background: linear-gradient(180deg, #f472b6, #9d174d); }
+
+    .judge-text {
+      font-size: 1.5rem;
+      font-weight: 900;
+      height: 36px;
+      line-height: 36px;
+      text-align: center;
+      margin-top: 8px;
+      letter-spacing: 2px;
+      transition: opacity 0.15s;
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .overlay.show { display: flex; }
+    .box {
+      background: #240045;
+      border: 2px solid rgba(192,132,252,0.45);
+      border-radius: 28px;
+      padding: 36px 44px;
+      text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      max-width: 320px;
+      width: 90%;
+    }
+    .box .em { font-size: 3.2rem; margin-bottom: 10px; }
+    .box h2 { font-size: 1.7rem; color: #c084fc; margin-bottom: 16px; }
+    .stat-row { display: flex; justify-content: space-between; color: #ccc; font-size: 0.9rem; margin-bottom: 6px; }
+    .stat-row span:last-child { color: #fff; font-weight: 700; }
+    .box-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .btn-play { background: #c084fc; color: #1a0030; padding: 12px 24px; font-size: 1rem; font-weight: 700; border: none; border-radius: 16px; cursor: pointer; }
+    .btn-back-link { display: block; padding: 12px 24px; font-size: 1rem; font-weight: 700; border-radius: 16px; text-align: center; text-decoration: none; background: rgba(255,255,255,0.1); color: #ccc; }
+
+    @media (max-height: 700px) {
+      body { padding: 6px 12px; }
+      h1 { font-size: 1.2rem; }
+      .tap-btn { height: 52px; font-size: 1.2rem; }
+      .tap-row { margin-top: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <a class="back" href="index.html">← 놀이터로</a>
+    <h1>🎵 리듬 게임</h1>
+  </div>
+  <div class="mode-bar">
+    <button class="mode-btn active" id="m-lv1" onclick="setMode('lv1')">1단계 🎵</button>
+    <button class="mode-btn"        id="m-lv2" onclick="setMode('lv2')">2단계 🎵</button>
+    <button class="mode-btn"        id="m-lv3" onclick="setMode('lv3')">3단계 🎵🎵</button>
+    <button class="mode-btn"        id="m-lv4" onclick="setMode('lv4')">4단계 🎵🎵</button>
+    <button class="mode-btn"        id="m-lv5" onclick="setMode('lv5')">5단계 🎵🎵🎵</button>
+  </div>
+  <div class="info-bar">
+    <span>🏆 <span id="scoreEl">0</span></span>
+    <span id="comboEl">🔥 <span id="comboNum">0</span> 콤보</span>
+    <span>최고 <span id="maxComboEl">0</span></span>
+  </div>
+  <canvas id="c"></canvas>
+  <div class="tap-row" id="tapRow" data-lanes="3"></div>
+  <div class="judge-text" id="judgeEl"></div>
+
+  <div class="overlay show" id="overlay">
+    <div class="box">
+      <div class="em" id="boxEm">🎵</div>
+      <h2 id="boxTitle">리듬 게임</h2>
+      <div id="boxStats"></div>
+      <div class="box-btns">
+        <button class="btn-play" onclick="startGame()">🎮 시작!</button>
+        <a class="btn-back-link" href="index.html">← 놀이터로</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ALL_LANE_COLORS = ['#ff6b6b', '#fbbf24', '#4ade80', '#60a5fa', '#f472b6'];
+    const LANE_KEY_LABELS = { 3: ['D','F','J'], 4: ['D','F','J','K'], 5: ['D','F','⎵','J','K'] };
+    const MODES = {
+      lv1: { label:'1단계', lanes:3, bpm: 75, songBeats:24, perfWindow:0.18, goodWindow:0.33, noteBeats:4.0, halfBeat:false },
+      lv2: { label:'2단계', lanes:3, bpm: 95, songBeats:32, perfWindow:0.14, goodWindow:0.26, noteBeats:3.5, halfBeat:true  },
+      lv3: { label:'3단계', lanes:4, bpm:115, songBeats:48, perfWindow:0.11, goodWindow:0.20, noteBeats:3.0, halfBeat:true  },
+      lv4: { label:'4단계', lanes:4, bpm:135, songBeats:56, perfWindow:0.09, goodWindow:0.17, noteBeats:2.8, halfBeat:true  },
+      lv5: { label:'5단계', lanes:5, bpm:155, songBeats:64, perfWindow:0.07, goodWindow:0.14, noteBeats:2.5, halfBeat:true  },
+    };
+
+    let mode = 'lv1';
+    let canvas, ctx, canvasW, canvasH, laneW, hitY;
+    let notes = [];
+    let score = 0, combo = 0, maxCombo = 0;
+    let perfect = 0, good = 0, miss = 0;
+    let songStart = 0, songDuration = 0;
+    let gameRunning = false, animId = null;
+    let audioCtx = null;
+    let judgeTimer = null;
+    let NOTE_SPEED_PX_PER_SEC = 300;
+
+    function initCanvas() {
+      canvas = document.getElementById('c');
+      canvasW = Math.min(window.innerWidth - 32, 420);
+      canvasH = Math.min(window.innerHeight - 310, 320);
+      canvas.width  = canvasW;
+      canvas.height = canvasH;
+      ctx = canvas.getContext('2d');
+      laneW = Math.floor(canvasW / MODES[mode].lanes);
+      hitY  = canvasH - 48;
+    }
+
+    function renderTapButtons() {
+      const m = MODES[mode];
+      const row = document.getElementById('tapRow');
+      row.innerHTML = '';
+      row.dataset.lanes = m.lanes;
+      const labels = LANE_KEY_LABELS[m.lanes];
+      for (let i = 0; i < m.lanes; i++) {
+        const btn = document.createElement('button');
+        btn.className = `tap-btn tap-${i}`;
+        btn.innerHTML = `<span class="btn-icon">♦</span><span class="btn-key">${labels[i]}</span>`;
+        const lane = i;
+        btn.addEventListener('pointerdown', e => { e.preventDefault(); tap(lane); });
+        row.appendChild(btn);
+      }
+    }
+
+    function setMode(m) {
+      mode = m;
+      Object.keys(MODES).forEach(k => document.getElementById('m-'+k).classList.toggle('active', k === m));
+      if (!gameRunning) { renderTapButtons(); initCanvas(); }
+    }
+
+    function genNotes() {
+      const m = MODES[mode];
+      const beatSec = 60 / m.bpm;
+      const result = [];
+      for (let b = 4; b < m.songBeats; b++) {
+        if (Math.random() < 0.85) {
+          result.push({ lane: Math.floor(Math.random() * m.lanes), time: b * beatSec });
+        }
+        if (m.halfBeat && Math.random() < 0.4) {
+          result.push({ lane: Math.floor(Math.random() * m.lanes), time: (b + 0.5) * beatSec });
+        }
+      }
+      result.sort((a, b2) => a.time - b2.time);
+      return result;
+    }
+
+    function getAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playHit(freq, type = 'sine', dur = 0.08) {
+      try {
+        const ac = getAudio();
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.connect(gain); gain.connect(ac.destination);
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ac.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.4, ac.currentTime + dur);
+        gain.gain.setValueAtTime(0.35, ac.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + dur);
+        osc.start(); osc.stop(ac.currentTime + dur);
+      } catch(_) {}
+    }
+
+    function playMiss() {
+      try {
+        const ac = getAudio();
+        const buf = ac.createBuffer(1, ac.sampleRate * 0.06, ac.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random()*2-1) * (1 - i/data.length);
+        const src = ac.createBufferSource();
+        const g = ac.createGain();
+        src.buffer = buf; src.connect(g); g.connect(ac.destination);
+        g.gain.setValueAtTime(0.15, ac.currentTime);
+        src.start();
+      } catch(_) {}
+    }
+
+    function playBeat() {
+      try {
+        const ac = getAudio();
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.connect(gain); gain.connect(ac.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(80, ac.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, ac.currentTime + 0.12);
+        gain.gain.setValueAtTime(0.4, ac.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.12);
+        osc.start(); osc.stop(ac.currentTime + 0.12);
+      } catch(_) {}
+    }
+
+    // Beat metronome
+    let beatIntervalId = null;
+    function startBeat() {
+      const m = MODES[mode];
+      const ms = 60000 / m.bpm;
+      playBeat();
+      beatIntervalId = setInterval(playBeat, ms);
+    }
+    function stopBeat() { clearInterval(beatIntervalId); beatIntervalId = null; }
+
+    function startGame() {
+      initCanvas();
+      renderTapButtons();
+      document.getElementById('overlay').classList.remove('show');
+      score = 0; combo = 0; maxCombo = 0; perfect = 0; good = 0; miss = 0;
+      updateHUD();
+
+      const m = MODES[mode];
+      const beatSec = 60 / m.bpm;
+      NOTE_SPEED_PX_PER_SEC = hitY / (m.noteBeats * beatSec);
+      notes = genNotes().map(n => ({...n, hit: false, missed: false, y: -20}));
+
+      gameRunning = true;
+      songStart = performance.now() / 1000;
+      songDuration = (m.songBeats + 4) * beatSec;
+
+      startBeat();
+      cancelAnimationFrame(animId);
+      animId = requestAnimationFrame(gameLoop);
+    }
+
+    function gameLoop(ts) {
+      if (!gameRunning) return;
+      const now = ts / 1000 - songStart;
+
+      // update note positions
+      for (const n of notes) {
+        if (n.hit || n.missed) continue;
+        const timeUntil = n.time - now;
+        n.y = hitY - timeUntil * NOTE_SPEED_PX_PER_SEC;
+
+        // auto-miss
+        if (now > n.time + MODES[mode].goodWindow && !n.hit) {
+          n.missed = true;
+          miss++;
+          combo = 0;
+          showJudge('MISS', '#888');
+          playMiss();
+          updateHUD();
+        }
+      }
+
+      // end game
+      if (now > songDuration) { endGame(); return; }
+
+      drawFrame(now);
+      animId = requestAnimationFrame(gameLoop);
+    }
+
+    function drawFrame(now) {
+      ctx.clearRect(0, 0, canvasW, canvasH);
+
+      // lane dividers
+      const curLanes = MODES[mode].lanes;
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1;
+      for (let i = 1; i < curLanes; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * laneW, 0);
+        ctx.lineTo(i * laneW, canvasH);
+        ctx.stroke();
+      }
+
+      // hit line
+      ctx.strokeStyle = 'rgba(192,132,252,0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, hitY); ctx.lineTo(canvasW, hitY); ctx.stroke();
+
+      // hit circles
+      const lanes = MODES[mode].lanes;
+      for (let i = 0; i < lanes; i++) {
+        const cx = i * laneW + laneW / 2;
+        ctx.beginPath();
+        ctx.arc(cx, hitY, 22, 0, Math.PI * 2);
+        ctx.strokeStyle = ALL_LANE_COLORS[i] + '88';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+
+      // notes
+      const noteR = Math.min(laneW * 0.36, 22);
+      for (const n of notes) {
+        if (n.hit || n.missed) continue;
+        if (n.y < -noteR * 2 || n.y > canvasH + noteR) continue;
+        const cx = n.lane * laneW + laneW / 2;
+        const alpha = Math.min(1, Math.max(0.2, (n.y + noteR * 2) / (noteR * 4)));
+        ctx.beginPath();
+        ctx.arc(cx, n.y, noteR, 0, Math.PI * 2);
+        ctx.fillStyle = ALL_LANE_COLORS[n.lane];
+        ctx.globalAlpha = alpha;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // glow
+        ctx.beginPath();
+        ctx.arc(cx, n.y, noteR * 0.55, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.globalAlpha = alpha * 0.6;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      // progress bar
+      const m = MODES[mode];
+      const beatSec = 60 / m.bpm;
+      const total = m.songBeats * beatSec;
+      const prog = Math.min(1, Math.max(0, now / total));
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.fillRect(0, canvasH - 4, canvasW, 4);
+      ctx.fillStyle = '#c084fc';
+      ctx.fillRect(0, canvasH - 4, canvasW * prog, 4);
+    }
+
+    function tap(lane) {
+      if (!gameRunning) return;
+      const now = performance.now() / 1000 - songStart;
+      const m = MODES[mode];
+
+      // find earliest unhit note in this lane within good window
+      let best = null, bestDist = Infinity;
+      for (const n of notes) {
+        if (n.hit || n.missed || n.lane !== lane) continue;
+        const dist = Math.abs(n.time - now);
+        if (dist < bestDist && dist < m.goodWindow) { best = n; bestDist = dist; }
+      }
+
+      if (!best) return;
+
+      best.hit = true;
+      if (bestDist <= m.perfWindow) {
+        perfect++;
+        score += 100 + combo * 2;
+        combo++;
+        showJudge('PERFECT!', '#fbbf24');
+        playHit(660, 'sine', 0.10);
+      } else {
+        good++;
+        score += 50 + combo;
+        combo++;
+        showJudge('GOOD', '#60a5fa');
+        playHit(440, 'sine', 0.08);
+      }
+      maxCombo = Math.max(maxCombo, combo);
+      updateHUD();
+    }
+
+    function showJudge(text, color) {
+      const el = document.getElementById('judgeEl');
+      el.textContent = text;
+      el.style.color = color;
+      el.style.opacity = '1';
+      clearTimeout(judgeTimer);
+      judgeTimer = setTimeout(() => { el.style.opacity = '0'; }, 400);
+    }
+
+    function updateHUD() {
+      document.getElementById('scoreEl').textContent  = score;
+      document.getElementById('comboNum').textContent = combo;
+      document.getElementById('maxComboEl').textContent = maxCombo;
+    }
+
+    function endGame() {
+      gameRunning = false;
+      stopBeat();
+      cancelAnimationFrame(animId);
+
+      const total = perfect + good + miss;
+      const acc = total > 0 ? Math.round((perfect * 100 + good * 60) / (total * 100) * 100) : 0;
+      let grade = acc >= 95 ? 'S' : acc >= 80 ? 'A' : acc >= 60 ? 'B' : acc >= 40 ? 'C' : 'D';
+      const em = acc >= 95 ? '🌟' : acc >= 80 ? '🎉' : acc >= 60 ? '👍' : '💪';
+
+      document.getElementById('boxEm').textContent    = em;
+      document.getElementById('boxTitle').textContent = `Grade ${grade}`;
+      document.getElementById('boxStats').innerHTML = `
+        <div class="stat-row"><span>🏆 점수</span><span>${score}</span></div>
+        <div class="stat-row"><span>✨ PERFECT</span><span>${perfect}</span></div>
+        <div class="stat-row"><span>👍 GOOD</span><span>${good}</span></div>
+        <div class="stat-row"><span>💀 MISS</span><span>${miss}</span></div>
+        <div class="stat-row"><span>🔥 최고 콤보</span><span>${maxCombo}</span></div>
+        <div class="stat-row"><span>🎯 정확도</span><span>${acc}%</span></div>
+      `;
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    // keyboard — mapping changes based on lane count
+    document.addEventListener('keydown', e => {
+      if (!gameRunning) return;
+      const lanes = MODES[mode].lanes;
+      const k = e.key;
+      if (lanes === 3) {
+        if (k==='d'||k==='D') tap(0);
+        else if (k==='f'||k==='F') tap(1);
+        else if (k==='j'||k==='J') tap(2);
+      } else if (lanes === 4) {
+        if (k==='d'||k==='D') tap(0);
+        else if (k==='f'||k==='F') tap(1);
+        else if (k==='j'||k==='J') tap(2);
+        else if (k==='k'||k==='K') tap(3);
+      } else {
+        if (k==='d'||k==='D') tap(0);
+        else if (k==='f'||k==='F') tap(1);
+        else if (k===' ') { e.preventDefault(); tap(2); }
+        else if (k==='j'||k==='J') tap(3);
+        else if (k==='k'||k==='K') tap(4);
+      }
+    });
+
+    initCanvas();
+    renderTapButtons();
+  </script>
+  <script>
+    document.addEventListener('touchmove', e => {
+      if (e.cancelable && document.body.scrollHeight <= window.innerHeight) e.preventDefault();
+    }, { passive: false });
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+    }
+  </script>
+</body>
+</html>

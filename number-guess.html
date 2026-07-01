@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Up & Down 수 맞추기</title>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#ff9a9e" />
+  <meta name="theme-color" content="#c2185b" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="놀이터" />
@@ -15,7 +15,7 @@
 
     body {
       font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
-      background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+      background: linear-gradient(135deg, #c2185b 0%, #e91e63 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -83,14 +83,14 @@
       padding: 16px;
       font-size: 1.6rem;
       text-align: center;
-      border: 3px solid #fad0c4;
+      border: 3px solid #f8bbd0;
       border-radius: 16px;
       outline: none;
       margin-bottom: 16px;
       transition: border-color 0.2s;
       color: #333;
     }
-    input[type="number"]:focus { border-color: #ff6b6b; }
+    input[type="number"]:focus { border-color: #e91e63; }
 
     button {
       width: 100%;
@@ -105,7 +105,7 @@
     button:hover { opacity: 0.88; transform: scale(0.98); }
 
     .btn-guess {
-      background: #ff6b6b;
+      background: #e91e63;
       color: #fff;
       margin-bottom: 10px;
     }
@@ -128,7 +128,7 @@
       min-height: 36px;
     }
 
-    .result.up    { color: #ff6b6b; }
+    .result.up    { color: #e91e63; }
     .result.down  { color: #339af0; }
     .result.win   { color: #51cf66; }
 
@@ -143,18 +143,18 @@
     .range-btn {
       padding: 8px 18px;
       border-radius: 20px;
-      border: 2px solid #fad0c4;
+      border: 2px solid #f8bbd0;
       background: #fff;
-      color: #ff6b6b;
+      color: #e91e63;
       font-size: 0.9rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
     }
     .range-btn.active, .range-btn:hover {
-      background: #ff6b6b;
+      background: #e91e63;
       color: #fff;
-      border-color: #ff6b6b;
+      border-color: #e91e63;
     }
 
     @media (orientation: landscape) and (max-height: 500px) {

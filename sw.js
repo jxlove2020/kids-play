@@ -1,4 +1,4 @@
-const CACHE = 'kids-play-v15';
+const CACHE = 'kids-play-v23';
 
 const ASSETS = [
   './index.html',
@@ -8,6 +8,11 @@ const ASSETS = [
   './whack-a-mole.html',
   './dodge.html',
   './simon.html',
+  './stopwatch.html',
+  './snake.html',
+  './rhythm.html',
+  './tetris.html',
+  './minesweeper.html',
   './manifest.json',
   './data/countries.js',
 ];
@@ -25,4 +30,3 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request)));
 });
-``;
