@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>보물 찾기</title>
+  <link rel="manifest" href="manifest.json?v=25" />
+  <meta name="theme-color" content="#1e2a3a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="놀이터" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
+      background: linear-gradient(135deg, #1a2639 0%, #243b53 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 12px;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+      color: #fff;
+    }
+    .top-bar {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .back {
+      text-decoration: none;
+      color: #fff;
+      font-size: 0.88rem;
+      background: rgba(255,255,255,0.12);
+      padding: 5px 12px;
+      border-radius: 14px;
+      white-space: nowrap;
+    }
+    h1 { font-size: 1.4rem; flex: 1; text-align: center; }
+
+    .mode-bar { display: flex; gap: 8px; margin-bottom: 8px; }
+    .mode-btn {
+      padding: 5px 16px; font-size: 0.83rem; font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.2); border-radius: 18px;
+      background: transparent; color: rgba(255,255,255,0.55); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .mode-btn.active { background: #4fc3f7; border-color: #4fc3f7; color: #1a2639; }
+
+    .hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .hud-box {
+      font-size: 1.15rem;
+      font-weight: 900;
+      font-family: 'Courier New', monospace;
+      background: #0d1b2a;
+      color: #f87171;
+      padding: 6px 14px;
+      border-radius: 8px;
+      min-width: 88px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .smiley-btn {
+      font-size: 1.8rem;
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      width: 56px; height: 56px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .smiley-btn:active { background: rgba(255,255,255,0.28); }
+
+    canvas {
+      display: block;
+      border: 2px solid rgba(79,195,247,0.3);
+      border-radius: 6px;
+      touch-action: none;
+      cursor: default;
+    }
+
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .flag-btn {
+      padding: 10px 28px;
+      font-size: 1rem; font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.25);
+      border-radius: 22px;
+      background: rgba(255,255,255,0.08);
+      color: #fff; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .flag-btn.on { background: #ef4444; border-color: #ef4444; }
+
+    .hint {
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72);
+      align-items: center; justify-content: center; z-index: 10;
+    }
+    .overlay.show { display: flex; }
+    .box {
+      background: #1a2e45;
+      border: 2px solid rgba(79,195,247,0.4);
+      border-radius: 26px;
+      padding: 34px 40px; text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      max-width: 300px; width: 90%;
+    }
+    .box .em { font-size: 3.2rem; margin-bottom: 8px; }
+    .box h2 { font-size: 1.6rem; color: #4fc3f7; margin-bottom: 14px; }
+    .stat-row { display: flex; justify-content: space-between; color: #bbb; font-size: 0.9rem; margin-bottom: 6px; }
+    .stat-row span:last-child { color: #fff; font-weight: 700; }
+    .box-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+    .btn-play { background: #4fc3f7; color: #1a2639; padding: 11px 22px; font-size: 1rem; font-weight: 700; border: none; border-radius: 14px; cursor: pointer; }
+    .btn-back-lnk { display: block; padding: 11px 22px; font-size: 0.95rem; font-weight: 700; border-radius: 14px; text-align: center; text-decoration: none; background: rgba(255,255,255,0.1); color: #ccc; }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <a class="back" href="index.html">← 놀이터로</a>
+    <h1>💎 보물 찾기</h1>
+  </div>
+  <div class="mode-bar">
+    <button class="mode-btn active" id="m-easy"   onclick="setMode('easy')">쉬움 9×9</button>
+    <button class="mode-btn"        id="m-normal" onclick="setMode('normal')">보통 12×12</button>
+    <button class="mode-btn"        id="m-hard"   onclick="setMode('hard')">어려움 16×16</button>
+  </div>
+  <div class="hud">
+    <div class="hud-box" id="minesEl">💎 010</div>
+    <button class="smiley-btn" id="smileyBtn" onclick="resetGame()">😊</button>
+    <div class="hud-box" id="timerEl">⏱ 000</div>
+  </div>
+  <canvas id="c"></canvas>
+  <div class="bottom-bar">
+    <button class="flag-btn" id="flagBtn" onclick="toggleFlagMode()">⛏️ 캐기 모드</button>
+  </div>
+  <div class="hint">💡 길게 누르면 깃발 · 숫자 칸 탭 = 주변 자동 열기 · PC: 우클릭 = 깃발</div>
+
+  <div class="overlay show" id="overlay">
+    <div class="box">
+      <div class="em" id="boxEm">💎</div>
+      <h2 id="boxTitle">보물 찾기</h2>
+      <div id="boxStats"></div>
+      <div class="box-btns">
+        <button class="btn-play" onclick="startGame()">🎮 시작!</button>
+        <a class="btn-back-lnk" href="index.html">← 놀이터로</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MODES = {
+      easy:   { rows:  9, cols:  9, mines: 10 },
+      normal: { rows: 12, cols: 12, mines: 25 },
+      hard:   { rows: 16, cols: 16, mines: 45 },
+    };
+    // 1-8 number colors
+    const NUM_CLR = ['','#4fc3f7','#81c784','#e57373','#ce93d8','#ffb74d','#4dd0e1','#e0e0e0','#bcaaa4'];
+
+    let mode = 'easy';
+    let rows, cols, numMines, cs; // cs = cell size in px
+    let grid; // grid[r][c] = {mine,revealed,flagged,count,exploded,wrongFlag}
+    let firstClick, minesLeft, flagMode;
+    let timerVal, timerId;
+    let gameOver, gameWon;
+    let canvas, ctx;
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+    // Long-press tracking
+    let pressTimer = null, pressPos = null;
+
+    // ── Setup ────────────────────────────────────────────────
+    function setMode(m) {
+      mode = m;
+      ['easy','normal','hard'].forEach(k =>
+        document.getElementById('m-'+k).classList.toggle('active', k === m));
+    }
+
+    function initCanvas() {
+      const maxW = Math.min(window.innerWidth - 24, 520);
+      const maxH = Math.max(180, window.innerHeight - 250);
+      cs = Math.max(24, Math.min(40, Math.floor(Math.min(maxW / cols, maxH / rows))));
+      const W = cols * cs, H = rows * cs;
+      canvas.width  = W * DPR;
+      canvas.height = H * DPR;
+      canvas.style.width  = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx = canvas.getContext('2d');
+      ctx.scale(DPR, DPR);
+    }
+
+    function startGame() {
+      const m = MODES[mode];
+      rows = m.rows; cols = m.cols; numMines = m.mines;
+      initCanvas();
+      grid = Array.from({length: rows}, () =>
+        Array.from({length: cols}, () =>
+          ({mine:false, revealed:false, flagged:false, count:0, exploded:false, wrongFlag:false})));
+      firstClick = true;
+      minesLeft  = numMines;
+      flagMode   = false;
+      gameOver   = false;
+      gameWon    = false;
+      timerVal   = 0;
+      stopTimer();
+      document.getElementById('smileyBtn').textContent = '😊';
+      document.getElementById('flagBtn').textContent   = '⛏️ 캐기 모드';
+      document.getElementById('flagBtn').classList.remove('on');
+      document.getElementById('overlay').classList.remove('show');
+      updateMinesEl();
+      updateTimerEl();
+      drawAll();
+    }
+
+    function resetGame() { stopTimer(); startGame(); }
+
+    // ── Mine logic ────────────────────────────────────────────
+    function placeMines(safeR, safeC) {
+      const safe = new Set();
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = safeR+dr, nc = safeC+dc;
+          if (nr>=0&&nr<rows&&nc>=0&&nc<cols) safe.add(nr*cols+nc);
+        }
+      let placed = 0;
+      while (placed < numMines) {
+        const r = Math.floor(Math.random()*rows), c = Math.floor(Math.random()*cols);
+        if (!grid[r][c].mine && !safe.has(r*cols+c)) { grid[r][c].mine = true; placed++; }
+      }
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++)
+          if (!grid[r][c].mine)
+            grid[r][c].count = nbrs(r,c).filter(([nr,nc]) => grid[nr][nc].mine).length;
+    }
+
+    function nbrs(r, c) {
+      const res = [];
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++) {
+          if (!dr && !dc) continue;
+          const nr=r+dr, nc=c+dc;
+          if (nr>=0&&nr<rows&&nc>=0&&nc<cols) res.push([nr,nc]);
+        }
+      return res;
+    }
+
+    function revealCell(r, c) {
+      if (gameOver || gameWon) return;
+      const cell = grid[r][c];
+      if (cell.revealed || cell.flagged) return;
+      if (firstClick) { firstClick = false; placeMines(r, c); startTimer(); }
+
+      if (cell.mine) {
+        cell.revealed = true; cell.exploded = true; gameOver = true;
+        stopTimer();
+        for (let i = 0; i < rows; i++)
+          for (let j = 0; j < cols; j++) {
+            if (grid[i][j].mine) grid[i][j].revealed = true;
+            if (grid[i][j].flagged && !grid[i][j].mine) grid[i][j].wrongFlag = true;
+          }
+        document.getElementById('smileyBtn').textContent = '😵';
+        drawAll();
+        setTimeout(() => showResult(false), 500);
+        return;
+      }
+
+      // BFS cascade reveal
+      const visited = new Set([r*cols+c]);
+      const q = [[r, c]];
+      while (q.length) {
+        const [qr, qc] = q.shift();
+        const qcell = grid[qr][qc];
+        if (qcell.revealed || qcell.flagged || qcell.mine) continue;
+        qcell.revealed = true;
+        if (qcell.count === 0)
+          nbrs(qr, qc).forEach(([nr,nc]) => {
+            const key = nr*cols+nc;
+            if (!visited.has(key)) { visited.add(key); q.push([nr,nc]); }
+          });
+      }
+      checkWin();
+      drawAll();
+    }
+
+    function chordCell(r, c) {
+      if (gameOver || gameWon) return;
+      const cell = grid[r][c];
+      if (!cell.revealed || cell.count === 0) return;
+      const nb = nbrs(r, c);
+      if (nb.filter(([nr,nc]) => grid[nr][nc].flagged).length === cell.count)
+        nb.forEach(([nr,nc]) => { if (!grid[nr][nc].flagged) revealCell(nr,nc); });
+    }
+
+    function flagCell(r, c) {
+      if (gameOver || gameWon) return;
+      const cell = grid[r][c];
+      if (cell.revealed) return;
+      cell.flagged = !cell.flagged;
+      minesLeft += cell.flagged ? -1 : 1;
+      updateMinesEl();
+      drawCell(r, c);
+    }
+
+    function checkWin() {
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++)
+          if (!grid[r][c].mine && !grid[r][c].revealed) return;
+      gameWon = true; stopTimer();
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++)
+          if (grid[r][c].mine) grid[r][c].flagged = true;
+      minesLeft = 0; updateMinesEl();
+      document.getElementById('smileyBtn').textContent = '😎';
+      drawAll();
+      setTimeout(() => showResult(true), 400);
+    }
+
+    function showResult(win) {
+      document.getElementById('boxEm').textContent    = win ? '🎉' : '😢';
+      document.getElementById('boxTitle').textContent = win ? '클리어!' : '실패!';
+      document.getElementById('boxStats').innerHTML = `
+        <div class="stat-row"><span>💎 보물 수</span><span>${numMines}개</span></div>
+        <div class="stat-row"><span>⏱ 시간</span><span>${timerVal}초</span></div>
+        ${win ? `<div class="stat-row" style="color:#4fc3f7;justify-content:center;margin-top:6px">🌟 보물을 모두 찾았어요!</div>` : ''}
+      `;
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    function toggleFlagMode() {
+      flagMode = !flagMode;
+      const btn = document.getElementById('flagBtn');
+      btn.textContent = flagMode ? '🚩 깃발 모드' : '⛏️ 캐기 모드';
+      btn.classList.toggle('on', flagMode);
+    }
+
+    // ── Timer ─────────────────────────────────────────────────
+    function startTimer() {
+      if (timerId) return;
+      timerId = setInterval(() => { timerVal = Math.min(999, timerVal+1); updateTimerEl(); }, 1000);
+    }
+    function stopTimer() { clearInterval(timerId); timerId = null; }
+    function updateMinesEl() {
+      document.getElementById('minesEl').textContent = '💎 ' + String(Math.max(0,minesLeft)).padStart(3,'0');
+    }
+    function updateTimerEl() {
+      document.getElementById('timerEl').textContent = '⏱ ' + String(timerVal).padStart(3,'0');
+    }
+
+    // ── Drawing ───────────────────────────────────────────────
+    function drawAll() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, cols*cs, rows*cs);
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++)
+          drawCell(r, c);
+    }
+
+    function drawCell(r, c) {
+      if (!ctx) return;
+      const x = c*cs, y = r*cs, p = 1, cell = grid[r][c];
+      const W = cs-p*2;
+
+      if (cell.revealed) {
+        if (cell.mine) {
+          ctx.fillStyle = cell.exploded ? '#7f1d1d' : '#2d3748';
+          ctx.fillRect(x+p, y+p, W, W);
+          emoji(cell.exploded ? '✨' : '💎', x+cs/2, y+cs/2, cs*0.56);
+        } else {
+          ctx.fillStyle = '#162232';
+          ctx.fillRect(x+p, y+p, W, W);
+          if (cell.count > 0) {
+            ctx.fillStyle = NUM_CLR[cell.count];
+            ctx.font = `bold ${Math.round(cs*0.52)}px 'Courier New',monospace`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(cell.count, x+cs/2, y+cs/2+1);
+          }
+        }
+      } else {
+        ctx.fillStyle = '#2d4a62';
+        ctx.fillRect(x+p, y+p, W, W);
+        // 3-D bevel
+        ctx.fillStyle = '#3d6a8a';
+        ctx.fillRect(x+p, y+p, W, 2);
+        ctx.fillRect(x+p, y+p, 2, W);
+        ctx.fillStyle = '#18303f';
+        ctx.fillRect(x+p+W-2, y+p+2, 2, W-4);
+        ctx.fillRect(x+p+2,   y+p+W-2, W-4, 2);
+
+        if (cell.wrongFlag)    emoji('❌', x+cs/2, y+cs/2, cs*0.50);
+        else if (cell.flagged) emoji('🚩', x+cs/2, y+cs/2, cs*0.50);
+      }
+    }
+
+    function emoji(e, cx, cy, size) {
+      ctx.font = `${size}px sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(e, cx, cy);
+    }
+
+    // ── Pointer events ────────────────────────────────────────
+    canvas = document.getElementById('c');
+    setMode('easy');
+
+    function cellAt(e) {
+      const rect = canvas.getBoundingClientRect();
+      const c = Math.floor((e.clientX - rect.left)  / cs);
+      const r = Math.floor((e.clientY - rect.top)   / cs);
+      return (r>=0&&r<rows&&c>=0&&c<cols) ? {r,c} : null;
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+      const pos = cellAt(e);
+      if (!pos || gameOver || gameWon) return;
+      pressPos = pos;
+      pressTimer = setTimeout(() => {
+        pressTimer = null;
+        if (pressPos) { flagCell(pressPos.r, pressPos.c); pressPos = null; }
+      }, 450);
+    });
+
+    canvas.addEventListener('pointerup', e => {
+      e.preventDefault();
+      if (pressTimer !== null) {
+        clearTimeout(pressTimer); pressTimer = null;
+        const pos = pressPos; pressPos = null;
+        if (!pos || gameOver || gameWon) return;
+        const cell = grid[pos.r][pos.c];
+        if (flagMode)          flagCell(pos.r, pos.c);
+        else if (cell.revealed) chordCell(pos.r, pos.c);
+        else                    revealCell(pos.r, pos.c);
+      } else {
+        pressPos = null;
+      }
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      if (!pressPos) return;
+      const pos = cellAt(e);
+      if (!pos || pos.r !== pressPos.r || pos.c !== pressPos.c) {
+        clearTimeout(pressTimer); pressTimer = null; pressPos = null;
+      }
+    });
+
+    canvas.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      const pos = cellAt(e);
+      if (pos && !gameOver && !gameWon) flagCell(pos.r, pos.c);
+    });
+
+    // keyboard shortcuts
+    document.addEventListener('keydown', e => {
+      if (e.key === 'r' || e.key === 'R') resetGame();
+      if (e.key === 'f' || e.key === 'F') toggleFlagMode();
+    });
+
+    // ── Boot ──────────────────────────────────────────────────
+  </script>
+  <script>
+    document.addEventListener('touchmove', e => {
+      if (e.cancelable && document.body.scrollHeight <= window.innerHeight) e.preventDefault();
+    }, { passive: false });
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=25'));
+    }
+  </script>
+</body>
+</html>

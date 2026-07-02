@@ -11,7 +11,7 @@ const ASSETS = [
   './stopwatch.html',
   './snake.html',
   './rhythm.html',
-  './bomb-finder.html',
+  './treasure-hunt.html',
   './manifest.json',
   './manifest.json?v=25',
   './data/countries.js',
