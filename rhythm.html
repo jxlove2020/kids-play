@@ -212,7 +212,7 @@
         <button class="mode-btn"        id="m-lv2" onclick="setMode('lv2')">2단계 ⭐⭐</button>
         <button class="mode-btn"        id="m-lv3" onclick="setMode('lv3')">3단계 ⭐⭐⭐</button>
         <button class="mode-btn"        id="m-lv4" onclick="setMode('lv4')">4단계 🔥</button>
-        <button class="mode-btn"        id="m-lv5" onclick="setMode('lv5')">5단계 💀</button>
+        <button class="mode-btn"        id="m-lv5" onclick="setMode('lv5')">5단계 🔥🔥</button>
       </div>
       <div class="box-btns">
         <button class="btn-play" onclick="startGame()">🎮 시작!</button>
@@ -271,7 +271,7 @@
       }
     }
 
-    const MODE_LABELS = { lv1:'1단계 ⭐', lv2:'2단계 ⭐⭐', lv3:'3단계 ⭐⭐⭐', lv4:'4단계 🔥', lv5:'5단계 💀' };
+    const MODE_LABELS = { lv1:'1단계 ⭐', lv2:'2단계 ⭐⭐', lv3:'3단계 ⭐⭐⭐', lv4:'4단계 🔥', lv5:'5단계 🔥🔥' };
 
     function setMode(m) {
       mode = m;
@@ -684,7 +684,7 @@
         <div class="stat-row"><span>🏆 점수</span><span>${score}</span></div>
         <div class="stat-row"><span>✨ PERFECT</span><span>${perfect}</span></div>
         <div class="stat-row"><span>👍 GOOD</span><span>${good}</span></div>
-        <div class="stat-row"><span>💀 MISS</span><span>${miss}</span></div>
+        <div class="stat-row"><span>😵 MISS</span><span>${miss}</span></div>
         <div class="stat-row"><span>🔥 최고 콤보</span><span>${maxCombo}</span></div>
         <div class="stat-row"><span>🎯 정확도</span><span>${acc}%</span></div>
       `;

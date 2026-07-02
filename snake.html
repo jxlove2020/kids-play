@@ -324,7 +324,7 @@
       saveBest(score);
       const best = bestScore();
       const isNew = score >= best && score > 0;
-      document.getElementById('boxEm').textContent    = isNew ? '🏆' : '💀';
+      document.getElementById('boxEm').textContent    = isNew ? '🏆' : '😢';
       document.getElementById('boxTitle').textContent = isNew ? '최고 기록!' : '게임 오버';
       document.getElementById('boxScore').textContent = `점수: ${score}점`;
       document.getElementById('boxBest').textContent  = isNew ? '🌟 새 최고 기록!' : `최고: ${best}점`;
