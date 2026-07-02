@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>개구리 잡기</title>
+  <link rel="manifest" href="manifest.json?v=25" />
+  <meta name="theme-color" content="#33691e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="놀이터" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
+      background: linear-gradient(135deg, #33691e 0%, #558b2f 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+    }
+    .back {
+      align-self: flex-start;
+      text-decoration: none;
+      color: #fff;
+      font-size: 1rem;
+      margin-bottom: 14px;
+      background: rgba(255,255,255,0.25);
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .back:hover { background: rgba(255,255,255,0.4); }
+    h1 { font-size: 2rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.4); margin-bottom: 8px; }
+    .info-bar { display: flex; gap: 20px; margin-bottom: 24px; }
+    .info-bar span {
+      background: rgba(255,255,255,0.3);
+      color: #fff; font-weight: 700;
+      padding: 6px 18px; border-radius: 20px; font-size: 1rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .hole {
+      width: 96px; height: 96px;
+      background: #4a2e0e;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: inset 0 8px 20px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .mole {
+      position: absolute;
+      left: 0; right: 0;
+      height: 100%;
+      bottom: -100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+      transition: bottom 0.12s ease-out;
+    }
+    .hole.up .mole { bottom: 0; }
+    @keyframes hit-flash {
+      0%   { transform: scale(1);   filter: brightness(1); }
+      40%  { transform: scale(1.3); filter: brightness(2.5); }
+      100% { transform: scale(0.9); filter: brightness(1); }
+    }
+    .hole.hit .mole { animation: hit-flash 0.22s ease forwards; }
+    .btn {
+      padding: 12px 36px; font-size: 1rem; font-weight: 700;
+      border: none; border-radius: 20px;
+      background: #fff; color: #33691e;
+      cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    }
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center; justify-content: center; z-index: 10;
+    }
+    .overlay.show { display: flex; }
+    .box {
+      background: #fff; border-radius: 28px;
+      padding: 40px 48px; text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    }
+    .box .em { font-size: 3.5rem; margin-bottom: 10px; }
+    .box h2 { font-size: 1.8rem; color: #333; margin-bottom: 8px; }
+    .box p { color: #888; margin-bottom: 24px; }
+    .box button {
+      padding: 12px 32px; font-size: 1rem; font-weight: 700;
+      border: none; border-radius: 16px;
+      background: #33691e; color: #fff; cursor: pointer;
+    }
+    @media (max-width: 360px) {
+      .hole { width: 80px; height: 80px; }
+      .mole { font-size: 2.4rem; }
+      .grid { gap: 10px; }
+    }
+    @media (orientation: landscape) and (max-height: 500px) {
+      body { padding: 8px 20px; }
+      h1 { font-size: 1.4rem; margin-bottom: 4px; }
+      .back { margin-bottom: 6px; }
+      .info-bar { margin-bottom: 8px; }
+      .hole { width: 65px; height: 65px; }
+      .mole { font-size: 2rem; }
+      .grid { gap: 8px; margin-bottom: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← 놀이터로</a>
+  <h1>🥍 개구리 잡기</h1>
+  <div class="info-bar">
+    <span>⏱ <span id="timer">30</span>초</span>
+    <span>🎯 <span id="score">0</span>마리</span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <button class="btn" id="startBtn" onclick="startGame()">🎮 시작!</button>
+
+  <div class="overlay" id="overlay">
+    <div class="box">
+      <div class="em">🏆</div>
+      <h2>수고했어요!</h2>
+      <p id="resultMsg"></p>
+      <button onclick="startGame()">다시 해볼게요!</button>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 9;
+    let score = 0, timeLeft = 30, running = false;
+    let tickId = null, timers = [];
+
+    const grid = document.getElementById('grid');
+    for (let i = 0; i < TOTAL; i++) {
+      const h = document.createElement('div');
+      h.className = 'hole';
+      h.innerHTML = '<div class="mole">🐸</div>';
+      h.addEventListener('pointerdown', e => { e.preventDefault(); whack(h); });
+      grid.appendChild(h);
+    }
+    const holes = [...grid.querySelectorAll('.hole')];
+
+    function startGame() {
+      score = 0; timeLeft = 30; running = true;
+      document.getElementById('score').textContent = 0;
+      document.getElementById('timer').textContent = 30;
+      document.getElementById('startBtn').style.display = 'none';
+      document.getElementById('overlay').classList.remove('show');
+      timers.forEach(clearTimeout); timers = [];
+      clearInterval(tickId);
+      holes.forEach(h => h.classList.remove('up', 'hit'));
+
+      tickId = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        if (timeLeft <= 0) endGame();
+      }, 1000);
+      schedule();
+    }
+
+    function schedule() {
+      if (!running) return;
+      const delay = Math.max(350, 1100 - score * 25);
+      timers.push(setTimeout(() => { pop(); schedule(); }, delay));
+    }
+
+    function pop() {
+      if (!running) return;
+      const avail = holes.filter(h => !h.classList.contains('up'));
+      if (!avail.length) return;
+      const h = avail[Math.floor(Math.random() * avail.length)];
+      h.classList.add('up');
+      const hold = Math.max(500, 900 - score * 18);
+      timers.push(setTimeout(() => h.classList.remove('up', 'hit'), hold));
+    }
+
+    function whack(h) {
+      if (!running || !h.classList.contains('up') || h.classList.contains('hit')) return;
+      h.classList.add('hit');
+      score++;
+      document.getElementById('score').textContent = score;
+      setTimeout(() => h.classList.remove('up', 'hit'), 250);
+    }
+
+    function endGame() {
+      running = false;
+      clearInterval(tickId);
+      timers.forEach(clearTimeout); timers = [];
+      holes.forEach(h => h.classList.remove('up', 'hit'));
+      const msg = score >= 25 ? '🌟 천재! 너무 빨라요!' : score >= 15 ? '👍 잘했어요!' : '💪 다시 도전해봐요!';
+      document.getElementById('resultMsg').textContent = `${score}마리를 잡았어요! ${msg}`;
+      document.getElementById('overlay').classList.add('show');
+      document.getElementById('startBtn').style.display = '';
+    }
+  </script>
+  <script>
+    document.addEventListener('touchmove', e => { if (e.cancelable && document.body.scrollHeight <= window.innerHeight) e.preventDefault(); }, { passive: false });
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=25'));
+    }
+  </script>
+</body>
+</html>

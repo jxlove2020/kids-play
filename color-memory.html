@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>색 순서 기억</title>
+  <link rel="manifest" href="manifest.json?v=25" />
+  <meta name="theme-color" content="#e74c3c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="놀이터" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nanum Gothic', 'Apple SD Gothic Neo', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      user-select: none;
+      -webkit-user-select: none;
+      overscroll-behavior: none;
+    }
+    .back {
+      align-self: flex-start;
+      text-decoration: none;
+      color: rgba(255,255,255,0.85);
+      font-size: 1rem;
+      margin-bottom: 12px;
+      background: rgba(255,255,255,0.12);
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .back:hover { background: rgba(255,255,255,0.22); }
+    h1 { font-size: 2rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); margin-bottom: 10px; }
+
+    .mode-select {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .mode-btn {
+      padding: 7px 20px;
+      border-radius: 20px;
+      border: 2px solid rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.85);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mode-btn.active {
+      background: rgba(255,255,255,0.92);
+      color: #1a1a2e;
+      border-color: #fff;
+    }
+
+    /* 오버레이 안 난이도 버튼 */
+    .box .mode-select { justify-content: center; margin: 12px 0 20px; flex-wrap: wrap; gap: 8px; }
+    .box .mode-btn {
+      border-color: #ddd;
+      background: #f5f5f5;
+      color: #555;
+    }
+    .box .mode-btn.active {
+      background: #667eea;
+      color: #fff;
+      border-color: #667eea;
+    }
+
+    .status {
+      color: rgba(255,255,255,0.85);
+      font-size: 1rem; font-weight: 700;
+      margin-bottom: 14px;
+      min-height: 1.4em; text-align: center;
+    }
+
+    .board {
+      display: grid;
+      gap: 10px;
+      width: min(340px, calc(100vw - 40px));
+      height: min(340px, calc(100vw - 40px));
+      margin-bottom: 16px;
+    }
+
+    .sbtn {
+      border: none;
+      cursor: pointer;
+      transition: filter 0.1s, transform 0.1s;
+      filter: brightness(0.4);
+      box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+    }
+    .sbtn.lit {
+      filter: brightness(1.1);
+      transform: scale(0.94);
+    }
+
+    .round-badge {
+      font-size: 1rem; font-weight: 700;
+      color: #fff;
+      background: rgba(255,255,255,0.14);
+      padding: 7px 22px; border-radius: 20px;
+    }
+
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      align-items: center; justify-content: center; z-index: 10;
+    }
+    .overlay.show { display: flex; }
+    .box {
+      background: #fff; border-radius: 28px;
+      padding: 36px 44px; text-align: center;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      max-width: 300px; width: 90%;
+    }
+    .box .em { font-size: 3.5rem; margin-bottom: 10px; }
+    .box h2 { font-size: 1.7rem; color: #333; margin-bottom: 8px; }
+    .box p { color: #888; margin-bottom: 24px; line-height: 1.7; white-space: pre-line; }
+    .box button {
+      padding: 12px 32px; font-size: 1rem; font-weight: 700;
+      border: none; border-radius: 16px;
+      background: #2ecc71; color: #fff; cursor: pointer;
+    }
+    .box .back-link {
+      display: block; margin-top: 14px;
+      color: #bbb; font-size: 0.85rem; text-decoration: none;
+    }
+    .box .back-link:hover { color: #888; }
+
+    @media (orientation: landscape) and (max-height: 500px) {
+      body { padding: 8px 20px; flex-direction: row; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 8px; }
+      .back { width: 100%; margin-bottom: 4px; }
+      h1 { width: 100%; font-size: 1.3rem; margin-bottom: 4px; text-align: center; }
+      .mode-select { width: 100%; justify-content: center; margin-bottom: 6px; }
+      .status { width: 100%; margin-bottom: 6px; font-size: 0.88rem; }
+      .board { width: min(220px, 40vw); height: min(220px, 40vw); margin-bottom: 0; }
+      .round-badge { align-self: center; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← 놀이터로</a>
+  <h1>🎨 색 순서 기억</h1>
+
+  <div class="status" id="status"></div>
+  <div class="board" id="board"></div>
+  <div class="round-badge">🌟 <span id="roundNum">0</span> 단계</div>
+
+  <div class="overlay show" id="overlay">
+    <div class="box">
+      <div class="em" id="oEm">🎨</div>
+      <h2 id="oTitle">색 순서 기억</h2>
+      <p id="oMsg">색깔 순서를 기억하고<br/>똑같이 눌러봐요!</p>
+      <div class="mode-select">
+        <button class="mode-btn active" data-mode="easy"   onclick="setMode(this)">쉬움 4칸</button>
+        <button class="mode-btn"        data-mode="medium" onclick="setMode(this)">중급 9칸</button>
+        <button class="mode-btn"        data-mode="hard"   onclick="setMode(this)">고급 16칸</button>
+      </div>
+      <button onclick="startGame()">🎮 시작!</button>
+      <a class="back-link" href="index.html">← 놀이터로</a>
+    </div>
+  </div>
+
+  <script>
+    // 16가지 색상 팔레트
+    const PALETTE = [
+      '#e74c3c', // 0 빨강
+      '#3498db', // 1 파랑
+      '#2ecc71', // 2 초록
+      '#f1c40f', // 3 노랑
+      '#9b59b6', // 4 보라
+      '#1abc9c', // 5 청록
+      '#e67e22', // 6 주황
+      '#e91e63', // 7 분홍
+      '#00bcd4', // 8 하늘
+      '#8bc34a', // 9 연두
+      '#ff5722', // 10 주홍
+      '#673ab7', // 11 남보라
+      '#03a9f4', // 12 스카이블루
+      '#ff4081', // 13 핫핑크
+      '#cddc39', // 14 라임
+      '#ff9800', // 15 황금색
+    ];
+
+    const MODES = {
+      easy:   { n: 4,  cols: 2, radius: '20px', gap: '12px' },
+      medium: { n: 9,  cols: 3, radius: '12px', gap: '10px' },
+      hard:   { n: 16, cols: 4, radius: '8px',  gap: '8px'  },
+    };
+
+    let curMode = 'easy';
+    let seq = [], idx = 0, round = 0, accepting = false;
+    let playId = 0, nextRoundTimer = null;
+
+    function setMode(btn) {
+      curMode = btn.dataset.mode;
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    function buildBoard() {
+      const { n, cols, radius, gap } = MODES[curMode];
+      const board = document.getElementById('board');
+      board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      board.style.gap = gap;
+      board.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const btn = document.createElement('button');
+        btn.className = 'sbtn';
+        btn.id = 'b' + i;
+        btn.style.background = PALETTE[i];
+        btn.style.borderRadius = radius;
+        btn.addEventListener('pointerdown', e => { e.preventDefault(); press(i); });
+        board.appendChild(btn);
+      }
+    }
+
+    function resetState() {
+      seq = []; idx = 0; round = 0; accepting = false;
+      playId++;
+      clearTimeout(nextRoundTimer); nextRoundTimer = null;
+      document.getElementById('roundNum').textContent = 0;
+      document.getElementById('status').textContent = '시작 버튼을 눌러봐요!';
+    }
+
+    function startGame() {
+      buildBoard();
+      resetState();
+      document.getElementById('overlay').classList.remove('show');
+      nextRoundTimer = setTimeout(nextRound, 600);
+    }
+
+    function nextRound() {
+      round++;
+      idx = 0;
+      accepting = false;
+      const { n } = MODES[curMode];
+      seq.push(Math.floor(Math.random() * n));
+      document.getElementById('roundNum').textContent = round;
+      document.getElementById('status').textContent = `${round}단계 잘 봐요! 👀`;
+      playSeq();
+    }
+
+    async function playSeq() {
+      const id = ++playId;
+      accepting = false;
+      const speed = curMode === 'hard' ? 420 : curMode === 'medium' ? 480 : 540;
+      await sleep(300);
+      const snapshot = [...seq];
+      for (const i of snapshot) {
+        if (id !== playId) return;
+        await light(i, speed);
+        await sleep(100);
+      }
+      if (id !== playId) return;
+      accepting = true;
+      document.getElementById('status').textContent = '이제 따라해봐요! 👆';
+    }
+
+    function light(i, ms) {
+      return new Promise(resolve => {
+        const el = document.getElementById('b' + i);
+        if (!el) { resolve(); return; }
+        el.classList.add('lit');
+        setTimeout(() => { el.classList.remove('lit'); resolve(); }, ms);
+      });
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function press(i) {
+      if (!accepting) return;
+      light(i, 160);
+      if (i === seq[idx]) {
+        idx++;
+        if (idx === seq.length) {
+          accepting = false;
+          const praise = round >= 15 ? '🌟 천재!' : round >= 10 ? '🔥 대단해요!' : round >= 5 ? '👍 잘했어요!' : '😊 훌륭해요!';
+          document.getElementById('status').textContent = `${round}단계 성공! ${praise}`;
+          nextRoundTimer = setTimeout(nextRound, 900);
+        }
+      } else {
+        accepting = false;
+        gameOver();
+      }
+    }
+
+    function gameOver() {
+      playId++;
+      clearTimeout(nextRoundTimer); nextRoundTimer = null;
+      document.getElementById('oEm').textContent = round >= 5 ? '🏆' : '😅';
+      document.getElementById('oTitle').textContent = '게임 종료!';
+      const praise = round >= 15 ? '🌟 대단해요!' : round >= 10 ? '👍 잘했어요!' : round >= 5 ? '💪 잘했어요!' : '다시 해봐요!';
+      document.getElementById('oMsg').textContent = `${round}단계까지 도달했어요! ${praise}`;
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    // 초기화
+    buildBoard();
+  </script>
+  <script>
+    document.addEventListener('touchmove', e => { if (e.cancelable && document.body.scrollHeight <= window.innerHeight) e.preventDefault(); }, { passive: false });
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js?v=25'));
+    }
+  </script>
+</body>
+</html>
