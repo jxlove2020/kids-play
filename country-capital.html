@@ -360,9 +360,7 @@
       <div class="question-no" id="questionNo">1 / 10</div>
 
       <div class="flag-area">
-        <img id="flagImg" class="flag-img" src="" alt=""
-             onerror="this.style.display='none'; document.getElementById('flagEmoji').style.display='block'">
-        <div id="flagEmoji" class="flag-emoji" style="display:none"></div>
+        <div id="flagEmoji" class="flag-emoji"></div>
       </div>
 
       <div class="question" id="question"></div>
@@ -448,14 +446,7 @@
       document.getElementById('questionNo').textContent = `${currentQ + 1} / ${total}`;
       document.getElementById('progressFill').style.width = `${(currentQ / total) * 100}%`;
 
-      // 국기 이미지 (flagcdn.com)
-      const img   = document.getElementById('flagImg');
-      const emoji = document.getElementById('flagEmoji');
-      img.style.display   = '';
-      emoji.style.display = 'none';
-      img.src = `https://flagcdn.com/w80/${q.code}.png`;
-      img.alt = q.flag;
-      emoji.textContent = q.flag;
+      document.getElementById('flagEmoji').textContent = q.flag;
 
       document.getElementById('question').innerHTML =
         `<span class="country-name">${q.country}</span>의 수도는?`;
